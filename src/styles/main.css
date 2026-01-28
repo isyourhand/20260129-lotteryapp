@@ -1,0 +1,391 @@
+/* src/styles/main.css */
+
+/* =========================================
+   1. 全局变量 (Variables)
+   ========================================= */
+:root {
+  /* 颜色系统 */
+  --card-bg: linear-gradient(135deg, #b92b74, #5a1a4a); /* 参考图的洋红色渐变 */
+  --sidebar-bg: rgba(20, 20, 30, 0.6);
+  --active-prize: linear-gradient(90deg, #b92b74, transparent);
+  --text-primary: #fff;
+  --gold-btn: linear-gradient(to bottom, #f9d423 0%, #ff4e50 100%);
+}
+
+/* =========================================
+   2. 全局基础样式 (Global & Layout)
+   ========================================= */
+body {
+  margin: 0;
+  /* 深空背景 */
+  background: #0f0c29;
+  background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29);
+  color: var(--text-primary);
+  font-family: "PingFang SC", sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 背景星星特效 */
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+      white,
+      rgba(255, 255, 255, 0.2) 2px,
+      transparent 3px
+    ),
+    radial-gradient(white, rgba(255, 255, 255, 0.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255, 255, 255, 0.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* =========================================
+   3. 侧边栏模块 (Sidebar)
+   ========================================= */
+.sidebar {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 260px;
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.prize-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+
+.prize-item.active {
+  background: var(--active-prize);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(185, 43, 116, 0.5);
+}
+
+.prize-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-right: 15px;
+  /* 简单的占位图标 */
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+}
+
+.prize-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.prize-info span {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* =========================================
+   4. 3D 舞台区域 (3D Stage & Sphere)
+   ========================================= */
+.canvas-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1500px; /* 景深 */
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* 防止放大时撑破屏幕 */
+}
+
+/* 球体容器 */
+.sphere-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+/* 状态：抽奖中（加速旋转） */
+/* =========================================
+   5. 抽奖卡片样式 (Lottery Cards)
+   ========================================= */
+.lottery-card {
+  position: absolute;
+  width: 90px;
+  height: 50px;
+  /* 背景改为半透明，增强透视感 */
+  background: rgba(185, 43, 116, 0.35);
+  border: 1px solid rgba(255, 154, 158, 0.5); /* 边框亮一点 */
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+
+  /* 【关键】允许看到背面的卡片 */
+  backface-visibility: visible;
+
+  /* 给卡片加一点发光效果 */
+  box-shadow: 0 0 15px rgba(185, 43, 116, 0.4);
+
+  /* 默认位置 */
+  left: -50px;
+  top: -30px;
+
+  /* 让文字有点立体感 */
+  text-shadow: 0 0 2px black;
+
+  /* 优化性能 */
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.8s ease, z-index 0s 0s;
+  will-change: transform, opacity;
+}
+
+/* 中奖态：卡片飞出 */
+.lottery-card.revealing-winner {
+  /* 飞出时边框发光更强 */
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 50px rgba(255, 215, 0, 0.8),
+    inset 0 0 20px rgba(255, 215, 0, 0.5);
+  background: rgba(185, 43, 116, 0.95);
+  /* z-index 必须最高 */
+  z-index: 9999 !important;
+}
+
+/* 选中态/高亮态（可选） */
+.lottery-card.highlight {
+  background: rgba(255, 215, 0, 0.8);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  border-color: #fff;
+  z-index: 1000;
+}
+
+.card-name {
+  font-weight: bold;
+  font-size: 1.2rem;
+  /* 防止文字换行 */
+  white-space: nowrap;
+}
+
+.card-dept {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* =========================================
+   6. 底部控制栏 (Control Bar)
+   ========================================= */
+.control-bar {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.btn-start {
+  background: var(--gold-btn);
+  border: none;
+  padding: 15px 80px;
+  font-size: 1.5rem;
+  border-radius: 50px;
+  color: #333;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(255, 78, 80, 0.4);
+  transition: transform 0.2s;
+}
+
+.btn-start:active {
+  transform: scale(0.95);
+}
+
+/* =========================================
+   7. 中奖结果弹窗 (Modal)
+   ========================================= */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: var(--card-bg); /* 复用洋红色渐变背景 */
+  padding: 30px;
+  border-radius: 20px;
+  border: 2px solid rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 30px rgba(185, 43, 116, 0.8);
+  text-align: center;
+  max-width: 80%;
+  min-width: 400px;
+  color: white;
+  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-title {
+  margin: 0 0 20px 0;
+  font-size: 2rem;
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.winners-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.winner-tag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* ...保留之前的 CSS... */
+
+/* --- 新增：静态中奖展示层 --- */
+.winner-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 200;
+}
+/* 定义飞出动画 */
+@keyframes flyToPosition {
+  0% {
+    /* 起点：屏幕中心 (因为 left:50%, top:50%) */
+    transform: translate(0, 0) scale(0.1) rotate(0deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    /* 终点：由 React 传入的 CSS 变量决定 */
+    transform: translate(var(--tx), var(--ty)) scale(1) rotate(360deg); /* 加点旋转更有趣 */
+    opacity: 1;
+  }
+}
+
+.winner-card-static {
+  position: absolute;
+  left: 50%;
+  top: 50%; /* 基准点在屏幕中心 */
+  width: 100px;
+  height: 60px;
+  margin-left: -50px;
+  margin-top: -30px;
+
+  background: rgba(185, 43, 116, 0.95);
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  pointer-events: auto;
+
+  /* --- 关键修改 --- */
+  opacity: 0; /* 初始不可见，防止闪烁 */
+  /* 执行动画，停留在最后一帧 (forwards) */
+  animation: flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.btn-close {
+  margin-top: 20px;
+  background: var(--gold-btn);
+  border: none;
+  padding: 10px 40px;
+  font-size: 1.1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+  box-shadow: 0 5px 15px rgba(255, 78, 80, 0.3);
+  transition: transform 0.2s;
+}
+
+.btn-close:hover {
+  transform: scale(1.05);
+}
+
+.btn-close:active {
+  transform: scale(0.95);
+}
+
+/* 弹窗渐显 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 弹窗缩放出现 */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
