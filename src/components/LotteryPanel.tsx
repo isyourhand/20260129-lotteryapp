@@ -1,3 +1,4 @@
+// lottery-app\src\components\LotteryPanel.tsx
 import React, { useMemo, useRef, type CSSProperties } from "react";
 import type { Participant, LotteryState } from "../types";
 import { useSpherePhysics } from "../hooks/useSpherePhysics"; // 引入刚才写的 hook
@@ -32,7 +33,7 @@ export const LotteryPanel: React.FC<Props> = ({
 
   const winnerMap = useMemo(
     () => new Map(currentWinners.map((w) => [w.id, w.revealing ?? 0])),
-    [currentWinners]
+    [currentWinners],
   );
 
   // ===================== Layer A: 3D Sphere =====================
@@ -70,8 +71,6 @@ export const LotteryPanel: React.FC<Props> = ({
 
   // ===================== Layer B: Winner Cards (保持不变) =====================
   const winnerCards = useMemo(() => {
-    // ... (代码与上一版相同，此处省略以节省篇幅) ...
-    // 请保持之前的 Winner Cards 逻辑
     const revealedWinners = currentWinners.filter((w) => w.revealing === 1);
     const total = currentWinners.length;
     if (!total) return null;
@@ -101,6 +100,23 @@ export const LotteryPanel: React.FC<Props> = ({
             {winner.name}
           </span>
           <div className="card-dept">{winner.department}</div>
+          {winner.specificPrize && (
+            <div
+              className="card-prize-detail"
+              style={{
+                marginTop: "4px",
+                fontSize: "0.8rem",
+                color: "#ffd700", // 金色字体突出奖品
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: "100%",
+              }}
+            >
+              {winner.specificPrize}
+            </div>
+          )}
         </div>
       );
     });

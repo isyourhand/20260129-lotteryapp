@@ -2,17 +2,18 @@
 
 // 对应 Excel 中的每一行数据
 export interface Participant {
-  id: number | string; // 序号
-  name: string; // 姓名
-  department: string; // 部门
+  id: number | string;
+  name: string;
+  department: string;
   revealing: 0 | 1;
+  specificPrize?: string; // [新增] 具体奖品名称 (针对幸运奖等混合奖项)
 }
 
-// 奖项配置
 export interface PrizeConfig {
-  level: number; // 奖项级别 (如 1, 2, 3, 4, 5)
-  name: string; // 奖项名称 (如 "三等奖", "特等奖")
-  count: number; // 该奖项抽取人数
+  level: number;
+  name: string;
+  count: number;
+  items?: string[]; // [新增] 如果该奖项包含不同种类的具体礼品，存放在这里
 }
 
 // 抽奖结果

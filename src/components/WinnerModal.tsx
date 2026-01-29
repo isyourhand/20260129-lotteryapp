@@ -1,6 +1,6 @@
 // src/components/WinnerModal.tsx
-import React from 'react';
-import type { Participant } from '../types';
+import React from "react";
+import type { Participant } from "../types";
 
 interface Props {
   isOpen: boolean;
@@ -9,21 +9,33 @@ interface Props {
   onClose: () => void;
 }
 
-export const WinnerModal: React.FC<Props> = ({ isOpen, prizeName, winners, onClose }) => {
+export const WinnerModal: React.FC<Props> = ({
+  isOpen,
+  prizeName,
+  winners,
+  onClose,
+}) => {
   if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop">
       <div className="modal-content">
         <h2 className="modal-title">🎉 恭喜获得 {prizeName} 🎉</h2>
-        
+
         <div className="winners-list">
           {winners.map((winner, index) => (
             <div key={winner.id || index} className="winner-tag">
-              {winner.name} 
-              <span style={{fontSize: '0.8em', opacity: 0.7, marginLeft: '5px'}}>
-                ({winner.department})
-              </span>
+              <div className="winner-info">
+                <span className="winner-name">{winner.name}</span>
+                <span className="winner-dept">({winner.department})</span>
+              </div>
+
+              {/* 【新增】如果有具体奖品，在这里显示 */}
+              {winner.specificPrize && (
+                <div className="winner-prize-detail">
+                  🎁 {winner.specificPrize}
+                </div>
+              )}
             </div>
           ))}
         </div>
