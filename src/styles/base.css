@@ -1,0 +1,98 @@
+/* src/styles/base.css */
+/* 全局变量和基础样式 */
+
+/* =========================================
+   1. 全局变量 (Variables)
+   ========================================= */
+:root {
+  --card-bg: linear-gradient(135deg, #b92b74, #5a1a4a);
+  --sidebar-bg: rgba(20, 20, 30, 0.6);
+  --active-prize: linear-gradient(90deg, #b92b74, transparent);
+  --text-primary: #fff;
+  --gold-btn: linear-gradient(to bottom, #f9d423 0%, #ff4e50 100%);
+}
+
+/* =========================================
+   2. 全局基础样式 (Global & Layout)
+   ========================================= */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29);
+  color: var(--text-primary);
+  font-family: "PingFang SC", sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 背景星星特效 */
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 3px),
+    radial-gradient(white, rgba(255, 255, 255, 0.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255, 255, 255, 0.1) 2px, transparent 3px);
+  background-size:
+    550px 550px,
+    350px 350px,
+    250px 250px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* =========================================
+   3. 通用动画 (Animations)
+   ========================================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes winnerPulse {
+  from {
+    box-shadow:
+      0 0 30px rgba(255, 215, 0, 0.6),
+      inset 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  to {
+    box-shadow:
+      0 0 60px rgba(255, 215, 0, 1),
+      inset 0 0 30px rgba(255, 215, 0, 0.6);
+  }
+}

@@ -1,5 +1,6 @@
 // src/App.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import confetti from "canvas-confetti";
 import { parseExcel, exportToExcel } from "./services/xlsx";
 import { drawWinners, shuffle } from "./services/lottery";
 import type { Participant, PrizeConfig } from "./types";
@@ -134,6 +135,42 @@ const useLotteryGame = () => {
     [],
   );
 
+  // 彩纸动画触发函数
+  const triggerConfetti = useCallback(() => {
+    // 基础彩纸
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 10000,
+    };
+
+    // 发射彩纸
+    const fire = (particleRatio: number, opts: confetti.Options) => {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(200 * particleRatio),
+      });
+    };
+
+    // 多轮彩纸效果
+    fire(0.25, { spread: 26, startVelocity: 55 });
+    fire(0.2, { spread: 60 });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+    fire(0.1, { spread: 120, startVelocity: 45 });
+
+    // 2秒后再次发射
+    setTimeout(() => {
+      confetti({
+        origin: { y: 0.6 },
+        particleCount: 100,
+        spread: 100,
+        colors: ["#ffd700", "#ff6b6b", "#4ecdc4", "#45b7d1", "#f9ca24"],
+        zIndex: 10000,
+      });
+    }, 800);
+  }, []);
+
   const finalize = useCallback((ws: Participant[], prize: PrizeConfig) => {
     const ids = new Set(ws.map((w) => w.id));
     setPool((p) => p.filter((x) => !ids.has(x.id)));
@@ -141,7 +178,9 @@ const useLotteryGame = () => {
     setResult({ prize: prize.name, winners: ws });
     setStatus("idle");
     setPrizeIdx((i) => i - 1);
-  }, []);
+    // 触发彩纸动画
+    triggerConfetti();
+  }, [triggerConfetti]);
 
   // 核心：变速揭晓重构为扁平递归，移除冗余参数
   const reveal = useCallback(
@@ -203,6 +242,7 @@ const useLotteryGame = () => {
     setWinners([]);
   }, []);
 
+
   // 3. 【新增】导出功能
   const downloadResults = useCallback(() => {
     exportToExcel(history, PRIZES);
@@ -260,63 +300,88 @@ const UploadLayer = ({
     <input type="file" accept=".xlsx,.xls" onChange={onUpload} />
   </div>
 );
-// 1. 先更新 Sidebar 的定义，让它能接收 onExport 属性
+// 1. 先更新 Sidebar 的定义，让它能接收 onExport 和 onReset 属性
 // ---------------------------------------------------
 const Sidebar = ({
   active,
   history,
-  onExport, // <--- 新增这个属性
+  onExport,
+  onReset,
 }: {
   active?: PrizeConfig;
   history: Record<number, Participant[]>;
-  onExport: () => void; // <--- 定义类型
-}) => (
-  <div className="sidebar">
-    <div className="prize-list">
-      {PRIZES.map((p) => (
-        <div
-          key={p.level}
-          className={`prize-item ${active?.level === p.level ? "active" : ""}`}
-        >
-          <div className="prize-icon" />
-          <div className="prize-info">
-            <h3>{p.name}</h3>
-            <span>
-              已抽取: {history[p.level]?.length ?? 0} / {p.count}
-            </span>
-          </div>
-        </div>
-      ))}
-    </div>
+  onExport: () => void;
+  onReset: () => void;
+}) => {
+  const hasHistory = Object.keys(history).length > 0;
 
-    {/* 底部导出按钮 */}
-    <div
-      className="sidebar-footer"
-      style={{
-        padding: "20px",
-        marginTop: "auto",
-        borderTop: "1px solid rgba(255,255,255,0.1)",
-      }}
-    >
-      <button
-        onClick={onExport}
-        disabled={Object.keys(history).length === 0}
+  return (
+    <div className="sidebar">
+      <div className="prize-list">
+        {PRIZES.map((p) => (
+          <div
+            key={p.level}
+            className={`prize-item ${active?.level === p.level ? "active" : ""}`}
+          >
+            <div className="prize-icon" />
+            <div className="prize-info">
+              <h3>{p.name}</h3>
+              <span>
+                已抽取: {history[p.level]?.length ?? 0} / {p.count}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 底部按钮区域 */}
+      <div
+        className="sidebar-footer"
         style={{
-          width: "100%",
-          padding: "8px",
-          background: "transparent",
-          border: "1px solid #ffd700",
-          color: "#ffd700",
-          borderRadius: "4px",
-          cursor: "pointer",
-          opacity: Object.keys(history).length === 0 ? 0.5 : 1,
+          padding: "20px",
+          marginTop: "auto",
+          borderTop: "1px solid rgba(255,255,255,0.1)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
         }}
       >
-        📥 导出名单
-      </button>
+        <button
+          onClick={onExport}
+          disabled={!hasHistory}
+          style={{
+            width: "100%",
+            padding: "8px",
+            background: "transparent",
+            border: "1px solid #ffd700",
+            color: "#ffd700",
+            borderRadius: "4px",
+            cursor: "pointer",
+            opacity: hasHistory ? 1 : 0.5,
+          }}
+        >
+          📥 导出名单
+        </button>
+        <button
+          onClick={onReset}
+          disabled={!hasHistory}
+          style={{
+            width: "100%",
+            padding: "8px",
+            background: "transparent",
+            border: "1px solid #ff6b6b",
+            color: "#ff6b6b",
+            borderRadius: "4px",
+            cursor: "pointer",
+            opacity: hasHistory ? 1 : 0.5,
+          }}
+        >
+          🔄 重新抽奖
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // 2. 修正后的主组件
 // ---------------------------------------------------
@@ -339,7 +404,8 @@ export default function App() {
       <Sidebar
         active={g.activePrize}
         history={g.history}
-        onExport={g.downloadResults} // <--- 这里把导出方法传进去
+        onExport={g.downloadResults}
+        onReset={g.clearAllData}
       />
 
       <LotteryPanel

@@ -1,0 +1,32 @@
+/* src/styles/control-bar.css */
+/* 底部控制栏样式 */
+
+.control-bar {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.btn-start {
+  background: var(--gold-btn);
+  border: none;
+  padding: 15px 80px;
+  font-size: 1.5rem;
+  border-radius: 50px;
+  color: #333;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(255, 78, 80, 0.4);
+  transition: transform 0.2s;
+}
+
+.btn-start:active {
+  transform: scale(0.95);
+}
+
+.btn-start:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

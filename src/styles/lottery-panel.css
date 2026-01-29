@@ -1,0 +1,142 @@
+/* src/styles/lottery-panel.css */
+/* 3D 抽奖球面板样式 */
+
+/* 3D 舞台区域 */
+.canvas-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  perspective: 1500px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 球体容器 */
+.sphere-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+/* 抽奖卡片样式 */
+.lottery-card {
+  position: absolute;
+  width: 90px;
+  height: 50px;
+  background: rgba(185, 43, 116, 0.35);
+  border: 1px solid rgba(255, 154, 158, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  backface-visibility: visible;
+  box-shadow: 0 0 15px rgba(185, 43, 116, 0.4);
+  left: -50px;
+  top: -30px;
+  text-shadow: 0 0 2px black;
+  transition:
+    transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.8s ease,
+    z-index 0s 0s;
+  will-change: transform, opacity;
+}
+
+.lottery-card .card-name {
+  font-weight: bold;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.lottery-card .card-dept {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* 中奖态：卡片飞出 */
+.lottery-card.revealing-winner {
+  border: 2px solid #ffd700;
+  box-shadow:
+    0 0 50px rgba(255, 215, 0, 0.8),
+    inset 0 0 20px rgba(255, 215, 0, 0.5);
+  background: rgba(185, 43, 116, 0.95);
+  z-index: 9999 !important;
+  animation: winnerPulse 0.6s ease-in-out infinite alternate;
+}
+
+/* 静态中奖展示层 */
+.winner-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 200;
+}
+
+/* 飞出动画 */
+@keyframes flyToPosition {
+  0% {
+    transform: translate(0, 0) scale(0.1) rotate(0deg);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+.winner-card-static {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100px;
+  height: 60px;
+  margin-left: -50px;
+  margin-top: -30px;
+  background: rgba(185, 43, 116, 0.95);
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  pointer-events: auto;
+  opacity: 0;
+  animation: flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.winner-card-static .card-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.winner-card-static .card-dept {
+  font-size: 0.7rem;
+}
+
+.winner-card-static .card-prize-detail {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #ffd700;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
