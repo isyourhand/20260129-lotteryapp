@@ -121,14 +121,99 @@
 
 /* 卡片背面 - 中奖信息 */
 .winner-flip-card-back {
-  background: linear-gradient(135deg, #b92b74 0%, #5a1a4a 100%);
-  border: 2px solid #ffd700;
+  background:
+    linear-gradient(135deg, #b92b74 0%, #5a1a4a 100%) padding-box,
+    linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700) border-box;
+  background-size: 200% 100%, 300% 100%;
+  border: 2px solid transparent;
+  border-radius: 8px;
   transform: rotateY(180deg);
   padding: 12px 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+  animation: modalGoldFlow 2s linear infinite;
+}
+
+/* 普通中奖卡片金色流动动画 */
+@keyframes modalGoldFlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
+}
+
+/* =========================================
+   一等奖特效 - 红色流动光芒
+   ========================================= */
+.winner-flip-card-back.first-prize {
+  background:
+    linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box;
+  background-size: 200% 100%, 300% 100%;
+  border: 3px solid transparent;
+  box-shadow:
+    0 0 20px rgba(255, 0, 0, 0.6),
+    0 0 40px rgba(255, 0, 0, 0.4),
+    0 0 60px rgba(255, 0, 0, 0.2),
+    inset 0 0 30px rgba(255, 0, 0, 0.3);
+  animation: redBorderFlow 2s linear infinite, redPulse 1.5s ease-in-out infinite alternate;
+}
+
+/* 红色边框流动动画 */
+@keyframes redBorderFlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
+}
+
+@keyframes redPulse {
+  0% {
+    box-shadow:
+      0 0 20px rgba(255, 0, 0, 0.6),
+      0 0 40px rgba(255, 0, 0, 0.4),
+      0 0 60px rgba(255, 0, 0, 0.2),
+      inset 0 0 30px rgba(255, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 0, 0.8),
+      0 0 60px rgba(255, 0, 0, 0.6),
+      0 0 90px rgba(255, 0, 0, 0.4),
+      inset 0 0 40px rgba(255, 0, 0, 0.5);
+  }
+}
+
+/* 一等奖卡片文字样式增强 */
+.winner-flip-card-back.first-prize .winner-name {
+  color: #fff;
+  text-shadow:
+    0 0 10px rgba(255, 0, 0, 0.8),
+    0 0 20px rgba(255, 0, 0, 0.6);
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+}
+
+.winner-flip-card-back.first-prize .winner-dept {
+  color: rgba(255, 200, 200, 0.9);
+  position: relative;
+  z-index: 1;
+}
+
+.winner-flip-card-back.first-prize .winner-prize-detail {
+  color: #ffcccc;
+  border-top: 1px dashed rgba(255, 100, 100, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
 /* 卡片背面文字 */

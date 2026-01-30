@@ -16,11 +16,22 @@
   overflow: hidden;
 }
 
-/* 球体容器 */
-.sphere-container {
+/* 球体缩放包装层 - 用于鼠标滚轮缩放 */
+.sphere-scale-wrapper {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 0;
+  height: 0;
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+}
+
+/* 球体容器 */
+.sphere-container {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 0;
   height: 0;
   transform-style: preserve-3d;
@@ -64,13 +75,39 @@
 
 /* 中奖态：卡片飞出 */
 .lottery-card.revealing-winner {
-  border: 2px solid #ffd700;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(135deg, rgba(185, 43, 116, 0.95) 0%, rgba(90, 26, 74, 0.95) 100%) padding-box,
+    linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700) border-box;
+  background-size: 200% 100%, 300% 100%;
   box-shadow:
     0 0 50px rgba(255, 215, 0, 0.8),
     inset 0 0 20px rgba(255, 215, 0, 0.5);
-  background: rgba(185, 43, 116, 0.95);
   z-index: 9999 !important;
-  animation: winnerPulse 0.6s ease-in-out infinite alternate;
+  animation: winnerPulse 0.6s ease-in-out infinite alternate, borderGlow 2s linear infinite;
+}
+
+/* 一等奖球体中奖卡片 - 红色流动光芒 */
+.lottery-card.revealing-winner.first-prize {
+  background:
+    linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box;
+  background-size: 200% 100%, 300% 100%;
+  box-shadow:
+    0 0 50px rgba(255, 0, 0, 0.8),
+    inset 0 0 20px rgba(255, 0, 0, 0.5);
+  animation: winnerPulse 0.6s ease-in-out infinite alternate,
+             redBorderFlow 2s linear infinite;
+}
+
+/* 红色边框流动动画 */
+@keyframes redBorderFlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
 }
 
 /* 静态中奖展示层 */
@@ -108,8 +145,7 @@
   margin-left: -50px;
   margin-top: -30px;
   background: rgba(185, 43, 116, 0.95);
-  border: 2px solid #ffd700;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  border: 2px solid transparent;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -118,7 +154,27 @@
   color: white;
   pointer-events: auto;
   opacity: 0;
-  animation: flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  /* 金色流动边框效果 */
+  background-image:
+    linear-gradient(135deg, rgba(185, 43, 116, 0.95) 0%, rgba(90, 26, 74, 0.95) 100%),
+    linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 200% 100%, 300% 100%;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  animation:
+    flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    goldBorderFlow 2s linear infinite;
+}
+
+/* 金色边框流动动画 */
+@keyframes goldBorderFlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
 }
 
 .winner-card-static .card-name {
@@ -139,4 +195,62 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+/* =========================================
+   一等奖飞出卡片特效 - 红色流动光芒
+   ========================================= */
+.winner-card-static.first-prize {
+  background-image:
+    linear-gradient(135deg, #8b0000 0%, #4a0000 100%),
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 200% 100%, 300% 100%;
+  border: 3px solid transparent;
+  box-shadow:
+    0 0 30px rgba(255, 0, 0, 0.8),
+    0 0 60px rgba(255, 0, 0, 0.5);
+  animation:
+    flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    redBorderFlow 2s linear infinite,
+    redPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes redBorderFlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
+}
+
+@keyframes redPulse {
+  0% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 0, 0.8),
+      0 0 60px rgba(255, 0, 0, 0.5);
+  }
+  100% {
+    box-shadow:
+      0 0 40px rgba(255, 0, 0, 1),
+      0 0 80px rgba(255, 0, 0, 0.7),
+      0 0 120px rgba(255, 0, 0, 0.4);
+  }
+}
+
+/* 一等奖卡片文字样式 */
+.winner-card-static.first-prize .card-name {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+.winner-card-static.first-prize .card-dept {
+  color: rgba(255, 200, 200, 0.9);
+}
+
+.winner-card-static.first-prize .card-prize-detail {
+  color: #ffcccc;
+  border-top: 1px dashed rgba(255, 100, 100, 0.5);
 }

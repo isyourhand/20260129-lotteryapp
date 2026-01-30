@@ -4,15 +4,17 @@ import type { Participant } from "../types";
 
 interface Props {
   isOpen: boolean;
-  prizeName: string;
+  poolName: string;
   winners: Participant[];
+  isFirstPrize: boolean;
   onClose: () => void;
 }
 
 export const WinnerModal: React.FC<Props> = ({
   isOpen,
-  prizeName,
+  poolName,
   winners,
+  isFirstPrize,
   onClose,
 }) => {
   const [showCards, setShowCards] = useState(false);
@@ -65,7 +67,7 @@ export const WinnerModal: React.FC<Props> = ({
           minHeight: `${modalSize.height}px`,
         }}
       >
-        <h2 className="modal-title">🎉 恭喜获得 {prizeName} 🎉</h2>
+        <h2 className="modal-title">🎉 恭喜获得 {poolName} 🎉</h2>
 
         <div
           className="winners-list"
@@ -95,7 +97,7 @@ export const WinnerModal: React.FC<Props> = ({
                   </span>
                 </div>
                 {/* 卡片背面 - 中奖信息 */}
-                <div className="winner-flip-card-back">
+                <div className={`winner-flip-card-back ${isFirstPrize ? 'first-prize' : ''}`}>
                   <div
                     className="winner-name"
                     style={{ fontSize: `${cardSize.fontSize}rem` }}

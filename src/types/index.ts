@@ -6,19 +6,22 @@ export interface Participant {
   name: string;
   department: string;
   revealing: 0 | 1;
-  specificPrize?: string; // [新增] 具体奖品名称 (针对幸运奖等混合奖项)
+  specificPrize?: string; // 具体奖品名称 (针对幸运奖等混合奖项)
 }
 
-export interface PrizeConfig {
-  level: number;
+// 奖池配置
+export interface PrizePool {
+  id: string;
   name: string;
-  count: number;
-  items?: string[]; // [新增] 如果该奖项包含不同种类的具体礼品，存放在这里
+  items: string[]; // 奖品列表
+  drawnCount: number; // 已抽取数量
+  isFirstPrize?: boolean; // 是否为一等奖
 }
 
 // 抽奖结果
 export interface LotteryResult {
-  prizeLevel: number;
+  poolId: string;
+  poolName: string;
   winners: Participant[];
 }
 

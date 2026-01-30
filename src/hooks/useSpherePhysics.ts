@@ -4,15 +4,15 @@ import type { LotteryState } from "../types";
 
 // 物理配置
 const PHYSICS = {
-  IDLE_SPEED: 0.2, // 空闲时的慢速旋转
-  MAX_SPEED: 25, // 抽奖时的最高速度
+  IDLE_SPEED: 0.05, // 空闲时的慢速旋转
+  MAX_SPEED: 5, // 抽奖时的最高速度
   ACCELERATION: 0.8, // 加速度
 };
 
 export const useSpherePhysics = (
   containerRef: RefObject<HTMLDivElement | null>,
   status: LotteryState,
-  dynamicFriction: number // <--- 新增参数
+  dynamicFriction: number, // <--- 新增参数
 ) => {
   const physicsState = useRef({
     angle: 0,
@@ -30,11 +30,10 @@ export const useSpherePhysics = (
           state.velocity += PHYSICS.ACCELERATION;
         }
       } else if (status === "revealing") {
-        // 使用动态计算的摩擦系数
-        if (state.velocity > PHYSICS.IDLE_SPEED) {
-          state.velocity *= dynamicFriction; // <--- 使用传入的值
-        }
-        if (state.velocity < PHYSICS.IDLE_SPEED + 0.05) {
+        // 使用动态计算的摩擦系数，让速度自然下降到 IDLE_SPEED
+        state.velocity *= dynamicFriction;
+        // 确保速度不会低于 IDLE_SPEED（避免在最后降得太慢）
+        if (state.velocity < PHYSICS.IDLE_SPEED) {
           state.velocity = PHYSICS.IDLE_SPEED;
         }
       } else {

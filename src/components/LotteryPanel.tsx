@@ -1,5 +1,5 @@
 // lottery-app\src\components\LotteryPanel.tsx
-import React, { useMemo, useRef, type CSSProperties } from "react";
+import React, { useMemo, useRef, useState, useEffect, type CSSProperties } from "react";
 import type { Participant, LotteryState } from "../types";
 import { useSpherePhysics } from "../hooks/useSpherePhysics"; // 引入刚才写的 hook
 
@@ -14,6 +14,7 @@ interface Props {
   lotteryState: LotteryState;
   currentWinners: Participant[];
   friction: number;
+  isFirstPrize?: boolean;
 }
 
 export const LotteryPanel: React.FC<Props> = ({
@@ -21,6 +22,7 @@ export const LotteryPanel: React.FC<Props> = ({
   lotteryState,
   currentWinners,
   friction,
+  isFirstPrize = false,
 }) => {
   const displayCount = Math.min(CONSTANTS.SPHERE_MAX, pool.length);
 
@@ -30,6 +32,32 @@ export const LotteryPanel: React.FC<Props> = ({
   // 2. 接入物理引擎 (核心修改)
   // 这会让 sphereRef 指向的 div 根据 state 进行丝滑的加减速旋转
   useSpherePhysics(sphereRef, lotteryState, friction);
+
+  // 3. 鼠标滚轮缩放功能
+  const [scale, setScale] = useState(1);
+  const canvasAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setScale((prev) => {
+        const newScale = prev + delta;
+        return Math.max(0.3, Math.min(2.5, newScale));
+      });
+    };
+
+    const canvasArea = canvasAreaRef.current;
+    if (canvasArea) {
+      canvasArea.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
+    return () => {
+      if (canvasArea) {
+        canvasArea.removeEventListener("wheel", handleWheel);
+      }
+    };
+  }, []);
 
   const winnerMap = useMemo(
     () => new Map(currentWinners.map((w) => [w.id, w.revealing ?? 0])),
@@ -56,10 +84,13 @@ export const LotteryPanel: React.FC<Props> = ({
         (phi * 180) / Math.PI - 90
       }deg) translateZ(${radius}px)`;
 
+      // 判断是否是一等奖中奖卡片
+      const isFirstPrizeWinner = isFirstPrize && isRevealed;
+
       return (
         <div
           key={p.id}
-          className={`lottery-card ${isRevealed ? "revealing-winner" : ""}`}
+          className={`lottery-card ${isRevealed ? "revealing-winner" : ""} ${isFirstPrizeWinner ? "first-prize" : ""}`}
           style={{ transform }}
         >
           <span className="card-name">{p.name}</span>
@@ -67,7 +98,7 @@ export const LotteryPanel: React.FC<Props> = ({
         </div>
       );
     });
-  }, [pool, displayCount, winnerMap]);
+  }, [pool, displayCount, winnerMap, isFirstPrize]);
 
   // ===================== Layer B: Winner Cards (保持不变) =====================
   const winnerCards = useMemo(() => {
@@ -88,7 +119,7 @@ export const LotteryPanel: React.FC<Props> = ({
       return (
         <div
           key={winner.id}
-          className="winner-card-static"
+          className={`winner-card-static ${isFirstPrize ? 'first-prize' : ''}`}
           style={
             {
               "--tx": `calc(32vw + ${tx}px)`,
@@ -124,14 +155,23 @@ export const LotteryPanel: React.FC<Props> = ({
 
   return (
     <>
-      <div className="canvas-area">
-        {/* 核心修改：
-            1. 移除了 className 中的 idle/running 状态类
-            2. 绑定 ref 给 useSpherePhysics 控制
-            3. style 中移除 transform，完全由 JS 接管
-        */}
-        <div className="sphere-container" ref={sphereRef}>
-          {sphereCards}
+      <div className="canvas-area" ref={canvasAreaRef}>
+        {/* 缩放包装层：使用 wrapper 应用缩放，避免与 sphere-container 的旋转冲突 */}
+        <div
+          className="sphere-scale-wrapper"
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "center center",
+          }}
+        >
+          {/* 核心修改：
+              1. 移除了 className 中的 idle/running 状态类
+              2. 绑定 ref 给 useSpherePhysics 控制
+              3. style 中移除 transform，完全由 JS 接管
+          */}
+          <div className="sphere-container" ref={sphereRef}>
+            {sphereCards}
+          </div>
         </div>
       </div>
       <div className="winner-layer">{winnerCards}</div>

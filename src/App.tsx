@@ -1,5 +1,5 @@
 // src/App.tsx
-// 主应用组件
+// 主应用组件 - 新版：支持自由选择奖池和抽取数量
 
 import React from "react";
 import { useLotteryGame } from "./hooks/useLottery";
@@ -24,8 +24,15 @@ const App: React.FC = () => {
   return (
     <div className="container">
       <Sidebar
-        active={g.activePrize}
+        prizePools={g.prizePools}
+        selectedPool={g.selectedPool}
+        drawCount={g.drawCount}
+        maxDrawCount={g.maxDrawCount}
         history={g.history}
+        canStart={g.canStart}
+        onSelectPool={g.selectPool}
+        onSetDrawCount={g.setDrawQuantity}
+        onStart={g.start}
         onExport={g.downloadResults}
         onReset={g.clearAllData}
       />
@@ -35,22 +42,14 @@ const App: React.FC = () => {
         lotteryState={g.status}
         currentWinners={g.winners}
         friction={g.friction}
+        isFirstPrize={g.result?.isFirstPrize ?? false}
       />
-
-      <div className="control-bar">
-        <button
-          className="btn-start"
-          onClick={g.start}
-          disabled={g.status !== "idle" || !!g.result || g.prizeIdx < 0}
-        >
-          {g.status === "revealing" ? "抽奖中..." : "开始抽奖"}
-        </button>
-      </div>
 
       <WinnerModal
         isOpen={!!g.result}
-        prizeName={g.result?.prize ?? ""}
+        poolName={g.result?.poolName ?? ""}
         winners={g.result?.winners ?? []}
+        isFirstPrize={g.result?.isFirstPrize ?? false}
         onClose={g.reset}
       />
     </div>

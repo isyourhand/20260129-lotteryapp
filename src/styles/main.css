@@ -1,8 +1,10 @@
 /* src/styles/main.css */
 /* 主样式文件 - 导入所有模块 */
 
+/* src/styles/main.css */
+/* 主样式文件 - 导入所有模块 */
+
 @import './base.css';
 @import './sidebar.css';
 @import './lottery-panel.css';
-@import './control-bar.css';
 @import './winner-modal.css';

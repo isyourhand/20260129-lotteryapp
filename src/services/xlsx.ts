@@ -31,17 +31,15 @@ export const parseExcel = (file: File): Promise<Participant[]> => {
   });
 };
 
+// 新版导出函数 - 支持按奖池分组
 export const exportToExcel = (
-  history: Record<number, Participant[]>,
-  prizes: PrizeConfig[],
+  grouped: Record<string, Participant[]>,
 ) => {
   // 1. 扁平化数据结构
-  // 我们要把 history 对象转换成一个平铺的数组，方便生成表格
-  const data = prizes.flatMap((prize) => {
-    const winners = history[prize.level] || [];
+  const data = Object.entries(grouped).flatMap(([poolName, winners]) => {
     return winners.map((winner) => ({
-      奖项等级: prize.name, // 例如：一等奖
-      具体奖品: winner.specificPrize || prize.name, // 例如：HUAWEI 平板
+      奖项: poolName,
+      具体奖品: winner.specificPrize || poolName,
       "工号/ID": winner.id,
       姓名: winner.name,
       部门: winner.department,
@@ -56,9 +54,9 @@ export const exportToExcel = (
   // 2. 创建工作表
   const worksheet = XLSX.utils.json_to_sheet(data);
 
-  // 3. 设置列宽 (追求视觉完美)
+  // 3. 设置列宽
   const wscols = [
-    { wch: 15 }, // 奖项等级
+    { wch: 15 }, // 奖项
     { wch: 25 }, // 具体奖品
     { wch: 10 }, // ID
     { wch: 15 }, // 姓名
@@ -70,7 +68,7 @@ export const exportToExcel = (
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "中奖名单");
 
-  // 生成文件名：中奖名单_2023-xx-xx_12-30.xlsx
+  // 生成文件名
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   XLSX.writeFile(workbook, `中奖名单_${timestamp}.xlsx`);
 };
