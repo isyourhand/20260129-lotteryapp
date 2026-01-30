@@ -3,6 +3,7 @@
 
 import React from "react";
 import { useLotteryGame } from "./hooks/useLottery";
+import { useAnimationConfig } from "./hooks/useAnimationConfig";
 import { LotteryPanel } from "./components/LotteryPanel";
 import { WinnerModal } from "./components/WinnerModal";
 import { Sidebar } from "./components/Sidebar";
@@ -10,6 +11,9 @@ import { UploadLayer } from "./components/UploadLayer";
 import "./styles/main.css";
 
 const App: React.FC = () => {
+  // 同步动画配置到 CSS 变量
+  useAnimationConfig();
+
   const g = useLotteryGame();
 
   // 如果没有文件，显示上传层

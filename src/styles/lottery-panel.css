@@ -77,27 +77,41 @@
 .lottery-card.revealing-winner {
   border: 2px solid transparent;
   background:
-    linear-gradient(135deg, rgba(185, 43, 116, 0.95) 0%, rgba(90, 26, 74, 0.95) 100%) padding-box,
-    linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700) border-box;
-  background-size: 200% 100%, 300% 100%;
+    linear-gradient(
+        135deg,
+        rgba(185, 43, 116, 0.95) 0%,
+        rgba(90, 26, 74, 0.95) 100%
+      )
+      padding-box,
+    linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700)
+      border-box;
+  background-size:
+    200% 100%,
+    300% 100%;
   box-shadow:
     0 0 50px rgba(255, 215, 0, 0.8),
     inset 0 0 20px rgba(255, 215, 0, 0.5);
   z-index: 9999 !important;
-  animation: winnerPulse 0.6s ease-in-out infinite alternate, borderGlow 2s linear infinite;
+  animation:
+    winnerPulse 0.6s ease-in-out infinite alternate,
+    borderGlow 2s linear infinite;
 }
 
 /* 一等奖球体中奖卡片 - 红色流动光芒 */
 .lottery-card.revealing-winner.first-prize {
   background:
     linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
-    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box !important;
-  background-size: 200% 100%, 300% 100% !important;
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000)
+      border-box !important;
+  background-size:
+    200% 100%,
+    300% 100% !important;
   box-shadow:
     0 0 50px rgba(255, 0, 0, 0.8),
     inset 0 0 20px rgba(255, 0, 0, 0.5) !important;
-  animation: redPulse 0.6s ease-in-out infinite alternate,
-             redBorderFlow 2s linear infinite !important;
+  animation:
+    redPulse 0.6s ease-in-out infinite alternate,
+    redBorderFlow 2s linear infinite !important;
 }
 
 /* 中奖卡片脉冲动画 */
@@ -117,20 +131,28 @@
 /* 金色边框发光动画 */
 @keyframes borderGlow {
   0% {
-    background-position: 0% 50%, 0% 50%;
+    background-position:
+      0% 50%,
+      0% 50%;
   }
   100% {
-    background-position: 0% 50%, 300% 50%;
+    background-position:
+      0% 50%,
+      300% 50%;
   }
 }
 
 /* 红色边框流动动画 */
 @keyframes redBorderFlow {
   0% {
-    background-position: 0% 50%, 0% 50%;
+    background-position:
+      0% 50%,
+      0% 50%;
   }
   100% {
-    background-position: 0% 50%, 300% 50%;
+    background-position:
+      0% 50%,
+      300% 50%;
   }
 }
 
@@ -148,47 +170,11 @@
   /* 注意：不能设置 overflow: hidden，否则卡片飞入过程中会被裁剪 */
 }
 
-
 /* =========================================
    三阶段动画：球体 -> 屏幕中央展示 -> 右侧网格
+   注意：@keyframes flyFromSphereToGrid 由 JS 动态注入
+   定义在 src/hooks/useAnimationConfig.ts
    ========================================= */
-@keyframes flyFromSphereToGrid {
-  /* 阶段1: 从球体飞到屏幕中央 (0% ~ 14.3% = 0.5s/3.5s) */
-  0% {
-    transform:
-      translate(var(--start-offset-x, 0px), var(--start-offset-y, 0px))
-      scale(var(--start-scale, 1));
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  14.3% {
-    /* 到达屏幕中央，放大展示 */
-    transform:
-      translate(var(--center-offset-x, 0px), var(--center-offset-y, 0px))
-      scale(1.5);
-    opacity: 1;
-  }
-
-  /* 阶段2: 在屏幕中央展示 (14.3% ~ 71.4% = 2s/3.5s) */
-  71.4% {
-    /* 保持中央位置展示 */
-    transform:
-      translate(var(--center-offset-x, 0px), var(--center-offset-y, 0px))
-      scale(1.5);
-    opacity: 1;
-  }
-
-  /* 阶段3: 从中央飞到右侧网格 (71.4% ~ 100% = 1s/3.5s) */
-  100% {
-    /* 飞到目标位置（translate 归零） */
-    transform:
-      translate(0, 0)
-      scale(1);
-    opacity: 1;
-  }
-}
 
 /* =========================================
    中奖卡片 - 绝对定位飞行
@@ -198,7 +184,7 @@
   position: absolute;
   width: 110px;
   height: 80px;
-  background: rgba(185, 43, 116, 0.95);
+  background: rgba(119, 77, 99, 0.95);
   border: 2px solid rgba(255, 215, 0, 0.8);
   border-radius: 8px;
   display: flex;
@@ -211,14 +197,22 @@
   opacity: 0;
   /* 金色流动边框效果 */
   background-image:
-    linear-gradient(135deg, rgba(185, 43, 116, 0.95) 0%, rgba(90, 26, 74, 0.95) 100%),
+    linear-gradient(
+      135deg,
+      rgba(185, 43, 116, 0.95) 0%,
+      rgba(90, 26, 74, 0.95) 100%
+    ),
     linear-gradient(90deg, #ffd700, #ffed4a, #ffd700, #ffaa00, #ffd700);
   background-origin: border-box;
   background-clip: padding-box, border-box;
-  background-size: 200% 100%, 300% 100%;
+  background-size:
+    200% 100%,
+    300% 100%;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  /* 动画时长由 JS 动态设置，见 useAnimationConfig.ts */
   animation:
-    flyFromSphereToGrid 3.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    flyFromSphereToGrid var(--card-anim-total) cubic-bezier(0.34, 1.56, 0.64, 1)
+      forwards,
     goldBorderFlow 2s linear infinite;
   will-change: transform, opacity;
   transform-origin: center center;
@@ -233,10 +227,14 @@
 /* 金色边框流动动画 */
 @keyframes goldBorderFlow {
   0% {
-    background-position: 0% 50%, 0% 50%;
+    background-position:
+      0% 50%,
+      0% 50%;
   }
   100% {
-    background-position: 0% 50%, 300% 50%;
+    background-position:
+      0% 50%,
+      300% 50%;
   }
 }
 
@@ -277,14 +275,18 @@
 .winner-card-static.first-prize {
   background:
     linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
-    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box !important;
-  background-size: 200% 100%, 300% 100% !important;
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000)
+      border-box !important;
+  background-size:
+    200% 100%,
+    300% 100% !important;
   border: 2px solid transparent !important;
   box-shadow:
     0 0 30px rgba(255, 0, 0, 0.8),
     0 0 60px rgba(255, 0, 0, 0.5) !important;
   animation:
-    flyFromSphereToGrid 3.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    flyFromSphereToGrid var(--card-anim-total, 3.5s)
+      cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     redBorderFlow 2s linear infinite,
     redPulse 1.5s ease-in-out infinite alternate !important;
 }
@@ -306,7 +308,9 @@
 /* 一等奖卡片文字样式 */
 .winner-card-static.first-prize .card-name {
   color: #fff;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.8), 0 0 20px rgba(255, 0, 0, 0.5);
+  text-shadow:
+    0 0 10px rgba(255, 0, 0, 0.8),
+    0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 .winner-card-static.first-prize .card-dept {

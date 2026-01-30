@@ -8,6 +8,7 @@ import { drawWinners, shuffle } from "../services/lottery";
 import { calculateDynamics } from "../services/physicsUtils";
 import type { Participant, PrizePool, LotteryResult } from "../types";
 import { PRIZE_POOLS, STORAGE_KEY } from "../config/prizes";
+import { CARD_ANIMATION, LOTTERY_FLOW } from "../config/animation";
 
 type GameStatus = "idle" | "rolling" | "revealing";
 
@@ -22,7 +23,9 @@ interface HistoryRecord {
 export const useLotteryGame = () => {
   const [pool, setPool] = useState<Participant[]>([]);
   const [status, setStatus] = useState<GameStatus>("idle");
-  const [winners, setWinners] = useState<(Participant & { revealing?: number })[]>([]);
+  const [winners, setWinners] = useState<
+    (Participant & { revealing?: number })[]
+  >([]);
   const [result, setResult] = useState<{
     poolName: string;
     winners: Participant[];
@@ -99,72 +102,74 @@ export const useLotteryGame = () => {
   }, []);
 
   // 选择奖池
-  const selectPool = useCallback((poolId: string) => {
-    const pool = prizePools.find((p) => p.id === poolId);
-    if (pool) {
-      setSelectedPool(pool);
-      // 默认抽取数量：不超过剩余奖品数和参与人数
-      setDrawCount(1);
-    }
-  }, [prizePools]);
+  const selectPool = useCallback(
+    (poolId: string) => {
+      const pool = prizePools.find((p) => p.id === poolId);
+      if (pool) {
+        setSelectedPool(pool);
+        // 默认抽取数量：不超过剩余奖品数和参与人数
+        setDrawCount(1);
+      }
+    },
+    [prizePools],
+  );
 
   // 设置抽取数量
   const setDrawQuantity = useCallback((count: number) => {
     setDrawCount(Math.max(1, Math.min(count, 50))); // 限制1-50
   }, []);
 
-  const finalize = useCallback((
-    ws: Participant[],
-    pool: PrizePool,
-    drawnItems: string[],
-  ) => {
-    const ids = new Set(ws.map((w) => w.id));
-    setPool((p) => p.filter((x) => !ids.has(x.id)));
+  const finalize = useCallback(
+    (ws: Participant[], pool: PrizePool, drawnItems: string[]) => {
+      const ids = new Set(ws.map((w) => w.id));
+      setPool((p) => p.filter((x) => !ids.has(x.id)));
 
-    // 更新奖池状态
-    setPrizePools((prev) =>
-      prev.map((p) =>
-        p.id === pool.id
-          ? { ...p, drawnCount: p.drawnCount + ws.length }
-          : p
-      )
-    );
+      // 更新奖池状态
+      setPrizePools((prev) =>
+        prev.map((p) =>
+          p.id === pool.id ? { ...p, drawnCount: p.drawnCount + ws.length } : p,
+        ),
+      );
 
-    // 添加到历史记录
-    const record: HistoryRecord = {
-      poolId: pool.id,
-      poolName: pool.name,
-      winners: ws,
-      timestamp: Date.now(),
-    };
-    setHistory((h) => [...h, record]);
+      // 添加到历史记录
+      const record: HistoryRecord = {
+        poolId: pool.id,
+        poolName: pool.name,
+        winners: ws,
+        timestamp: Date.now(),
+      };
+      setHistory((h) => [...h, record]);
 
-    setResult({
-      poolName: pool.name,
-      winners: ws,
-      isFirstPrize: pool.isFirstPrize ?? false,
-    });
-    setStatus("idle");
-    setSelectedPool(null);
-    triggerConfetti();
-  }, [triggerConfetti]);
+      setResult({
+        poolName: pool.name,
+        winners: ws,
+        isFirstPrize: pool.isFirstPrize ?? false,
+      });
+      setStatus("idle");
+      setSelectedPool(null);
+      triggerConfetti();
+    },
+    [triggerConfetti],
+  );
 
   const reveal = useCallback(
     (ws: Participant[], idx: number, pool: PrizePool, drawnItems: string[]) => {
       if (idx >= ws.length) {
-        // 所有卡片已完成飞行动画，结束抽奖
-        timer.current = window.setTimeout(() => finalize(ws, pool, drawnItems), 500);
+        // 所有卡片已亮起，等待最后一张完成飞行动画后结束
+        timer.current = window.setTimeout(
+          () => finalize(ws, pool, drawnItems),
+          CARD_ANIMATION.TOTAL + LOTTERY_FLOW.MODAL_DELAY,
+        );
         return;
       }
       // 点亮当前卡片（触发 CSS 飞行动画）
       setWinners((prev) =>
         prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w)),
       );
-      // 等待当前卡片完成整个动画流程（3.5秒）后，再开始下一张
-      const CARD_ANIMATION_DURATION = 3500;
+      // 等待当前卡片完成整个动画流程后，再开始下一张
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
-        CARD_ANIMATION_DURATION,
+        LOTTERY_FLOW.CARD_INTERVAL,
       );
     },
     [finalize],
@@ -177,7 +182,11 @@ export const useLotteryGame = () => {
 
     // 检查奖池是否还有奖品
     const remainingItems = selectedPool.items.slice(selectedPool.drawnCount);
-    const actualDrawCount = Math.min(drawCount, remainingItems.length, pool.length);
+    const actualDrawCount = Math.min(
+      drawCount,
+      remainingItems.length,
+      pool.length,
+    );
 
     if (actualDrawCount <= 0) {
       return alert("该奖池已抽完");
@@ -209,19 +218,25 @@ export const useLotteryGame = () => {
   }, []);
 
   // 获取指定奖池的历史记录
-  const getPoolHistory = useCallback((poolId: string) => {
-    return history.filter((h) => h.poolId === poolId);
-  }, [history]);
+  const getPoolHistory = useCallback(
+    (poolId: string) => {
+      return history.filter((h) => h.poolId === poolId);
+    },
+    [history],
+  );
 
   const downloadResults = useCallback(() => {
     // 按奖池分组导出
-    const grouped = history.reduce((acc, record) => {
-      if (!acc[record.poolName]) {
-        acc[record.poolName] = [];
-      }
-      acc[record.poolName].push(...record.winners);
-      return acc;
-    }, {} as Record<string, Participant[]>);
+    const grouped = history.reduce(
+      (acc, record) => {
+        if (!acc[record.poolName]) {
+          acc[record.poolName] = [];
+        }
+        acc[record.poolName].push(...record.winners);
+        return acc;
+      },
+      {} as Record<string, Participant[]>,
+    );
 
     exportToExcel(grouped);
   }, [history]);
@@ -244,7 +259,7 @@ export const useLotteryGame = () => {
     ? Math.min(
         selectedPool.items.length - selectedPool.drawnCount,
         pool.length,
-        50
+        50,
       )
     : 0;
 

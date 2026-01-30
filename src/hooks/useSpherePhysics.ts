@@ -4,7 +4,7 @@ import type { LotteryState } from "../types";
 
 // 物理配置
 const PHYSICS = {
-  IDLE_SPEED: 0.05, // 空闲时的慢速旋转
+  IDLE_SPEED: 0.5, // 空闲时的慢速旋转
   MAX_SPEED: 5, // 抽奖时的最高速度
   ACCELERATION: 0.8, // 加速度
 };
