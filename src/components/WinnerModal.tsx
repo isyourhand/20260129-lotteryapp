@@ -30,31 +30,85 @@ export const WinnerModal: React.FC<Props> = ({
 
   const count = winners.length;
 
-  // 根据中奖人数计算卡片和弹窗尺寸（人数少卡片大，人数多卡片小）
-  // 卡片大小减小10%，但字体保持不变
-  const getCardSize = () => {
-    if (count <= 1) return { width: 342, height: 234, fontSize: 2.8, gap: 60 };
-    if (count <= 2) return { width: 288, height: 198, fontSize: 2.4, gap: 50 };
-    if (count <= 3) return { width: 252, height: 171, fontSize: 2.2, gap: 40 };
-    if (count <= 5) return { width: 198, height: 135, fontSize: 1.9, gap: 35 };
-    if (count <= 8) return { width: 162, height: 108, fontSize: 1.6, gap: 30 };
-    if (count <= 12) return { width: 135, height: 90, fontSize: 1.4, gap: 25 };
-    return { width: 117, height: 81, fontSize: 1.2, gap: 20 }; // 13人及以上
-  };
+  // 智能计算卡片布局 - 基于视口和人数自动优化
+  const getLayout = () => {
+    // 视口可用空间（预留边距）
+    const viewportWidth =
+      typeof window !== "undefined" ? window.innerWidth * 0.9 : 1200;
+    const viewportHeight =
+      typeof window !== "undefined" ? window.innerHeight * 0.8 : 800;
 
-  const cardSize = getCardSize();
+    // 卡片宽高比
+    const cardRatio = 1.5; // 宽:高 = 1.5:1
 
-  // 计算弹窗尺寸 - 整体放大1.5倍，确保大家看得清楚
-  const getModalSize = () => {
-    // 根据人数计算列数，控制行数不要太多
-    const cols = count <= 3 ? count : count <= 6 ? 3 : count <= 12 ? 4 : 6;
+    // 根据人数智能计算列数 - 目标是让卡片分布更均匀，接近正方形
+    let cols: number;
+    if (count <= 1) cols = 1;
+    else if (count <= 2) cols = 2;
+    else if (count <= 4) cols = 2;
+    else if (count <= 6) cols = 3;
+    else if (count <= 9) cols = 3;
+    else if (count <= 12) cols = 4;
+    else if (count <= 16) cols = 4;
+    else if (count <= 20) cols = 5;
+    else if (count <= 25) cols = 5;
+    else cols = 6;
+
     const rows = Math.ceil(count / cols);
-    const modalWidth = Math.max(600, cols * (cardSize.width + cardSize.gap * 0.8) + 150);
-    const modalHeight = Math.max(500, rows * (cardSize.height + cardSize.gap) + 250);
-    return { width: modalWidth, height: modalHeight };
+
+    // 计算每个卡片可用的最大空间（考虑间距）
+    const gap = Math.max(16, Math.min(24, 120 / count)); // 间距随人数增加而减小，但有最小值
+    const availableWidth = (viewportWidth - 100) / cols - gap;
+    const availableHeight = (viewportHeight - 200) / rows - gap;
+
+    // 根据可用空间计算卡片尺寸，保持比例
+    let cardWidth = Math.min(availableWidth, availableHeight * cardRatio);
+    let cardHeight = cardWidth / cardRatio;
+
+    // 限制卡片最大最小尺寸
+    const maxWidth = 200;
+    const minWidth = 120;
+    const maxHeight = 150;
+    const minHeight = 80;
+
+    cardWidth = Math.max(minWidth, Math.min(maxWidth, cardWidth));
+    cardHeight = Math.max(minHeight, Math.min(maxHeight, cardHeight));
+
+    // 如果按宽度计算的高度超出限制，按高度反推宽度
+    if (cardHeight > maxHeight) {
+      cardHeight = maxHeight;
+      cardWidth = cardHeight * cardRatio;
+    } else if (cardHeight < minHeight) {
+      cardHeight = minHeight;
+      cardWidth = cardHeight * cardRatio;
+    }
+
+    // 字体大小计算 - 基于卡片宽度，但有最小值保证可读性
+    const baseFontSize = cardWidth / 120; // 基准字体比例
+    const fontSize = Math.max(1.1, Math.min(2.8, baseFontSize * 1.2));
+
+    // 弹窗尺寸 - 根据实际卡片布局计算，确保最小宽度能容纳标题
+    const calculatedWidth = cols * (cardWidth + gap) + 80;
+    const minWidthForTitle = 420; // 确保标题能完整显示的最小宽度
+    const modalWidth = Math.min(viewportWidth, Math.max(calculatedWidth, minWidthForTitle));
+    const modalHeight = Math.min(
+      viewportHeight,
+      rows * (cardHeight + gap) + 180,
+    );
+
+    return {
+      cardWidth: Math.round(cardWidth),
+      cardHeight: Math.round(cardHeight),
+      fontSize: Math.round(fontSize * 10) / 10,
+      gap: Math.round(gap),
+      cols,
+      rows,
+      modalWidth: Math.round(modalWidth),
+      modalHeight: Math.round(modalHeight),
+    };
   };
 
-  const modalSize = getModalSize();
+  const layout = getLayout();
 
   if (!isOpen) return null;
 
@@ -63,8 +117,8 @@ export const WinnerModal: React.FC<Props> = ({
       <div
         className="modal-content"
         style={{
-          width: `${modalSize.width}px`,
-          minHeight: `${modalSize.height}px`,
+          width: `${layout.modalWidth}px`,
+          minHeight: `${layout.modalHeight}px`,
         }}
       >
         <h2 className="modal-title">🎉 恭喜获得 {poolName} 🎉</h2>
@@ -72,18 +126,18 @@ export const WinnerModal: React.FC<Props> = ({
         <div
           className="winners-list"
           style={{
-            gap: `${cardSize.gap}px`,
+            gap: `${layout.gap}px`,
+            gridTemplateColumns: `repeat(${layout.cols}, auto)`,
           }}
         >
           {winners.map((winner, index) => (
             <div
               key={winner.id || index}
-              className={`winner-flip-card ${showCards ? 'flipped' : ''}`}
+              className={`winner-flip-card ${showCards ? "flipped" : ""}`}
               style={{
-                animationDelay: `${index * 150}ms`,
-                width: `${cardSize.width}px`,
-                height: `${cardSize.height}px`,
-                margin: `${cardSize.gap / 3}px`,
+                animationDelay: `${index * 120}ms`,
+                width: `${layout.cardWidth}px`,
+                height: `${layout.cardHeight}px`,
               }}
             >
               <div className="winner-flip-card-inner">
@@ -91,29 +145,40 @@ export const WinnerModal: React.FC<Props> = ({
                 <div className="winner-flip-card-front">
                   <span
                     className="flip-question"
-                    style={{ fontSize: `${cardSize.fontSize * 2.5}rem` }}
+                    style={{
+                      fontSize: `${Math.min(layout.cardWidth * 0.4, 80)}px`,
+                    }}
                   >
                     ?
                   </span>
                 </div>
                 {/* 卡片背面 - 中奖信息 */}
-                <div className={`winner-flip-card-back ${isFirstPrize ? 'first-prize' : ''}`}>
+                <div
+                  className={`winner-flip-card-back ${isFirstPrize ? "first-prize" : ""}`}
+                >
                   <div
                     className="winner-name"
-                    style={{ fontSize: `${cardSize.fontSize}rem` }}
+                    style={{ fontSize: `${layout.fontSize}rem` }}
                   >
                     {winner.name}
                   </div>
                   <div
                     className="winner-dept"
-                    style={{ fontSize: `${cardSize.fontSize * 0.65}rem`, marginTop: '8px' }}
+                    style={{
+                      fontSize: `${Math.max(0.8, layout.fontSize * 0.55)}rem`,
+                      marginTop: "6px",
+                    }}
                   >
                     {winner.department}
                   </div>
                   {winner.specificPrize && (
                     <div
                       className="winner-prize-detail"
-                      style={{ fontSize: `${cardSize.fontSize * 0.6}rem`, marginTop: '8px', paddingTop: '8px' }}
+                      style={{
+                        fontSize: `${Math.max(0.7, layout.fontSize * 0.5)}rem`,
+                        marginTop: "6px",
+                        paddingTop: "6px",
+                      }}
                     >
                       {winner.specificPrize}
                     </div>

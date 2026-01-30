@@ -122,7 +122,7 @@ export const LotteryPanel: React.FC<Props> = ({
           className={`winner-card-static ${isFirstPrize ? 'first-prize' : ''}`}
           style={
             {
-              "--tx": `calc(32vw + ${tx}px)`,
+              "--tx": `calc(44vw - 60px + ${tx}px)`,
               "--ty": `${ty}px`,
             } as CSSProperties
           }

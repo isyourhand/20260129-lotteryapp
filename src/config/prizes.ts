@@ -9,8 +9,8 @@ const generateItems = (...items: [string, number][]): string[] => {
   return items.flatMap(([name, count]) => Array(count).fill(name));
 };
 
-// 幸运奖池（所有奖品放在一个池子里）
-const LUCKY_POOL_ITEMS = generateItems(
+// 盲盒奖池
+const BLIND_BOX_ITEMS = generateItems(
   ["全家桶洗护套装", 2],
   ["马上有福玩偶", 1],
   ["马上有钱玩偶", 1],
@@ -28,7 +28,6 @@ const LUCKY_POOL_ITEMS = generateItems(
   ["颈部按摩枕", 2],
   ["蓝牙自拍杆", 1],
   ["马年公仔", 1],
-  ["刮刮乐&彩票", 3],
 );
 
 // 奖池列表 - 用户可自由选择
@@ -36,7 +35,7 @@ export const PRIZE_POOLS: PrizePool[] = [
   {
     id: "first",
     name: "一等奖",
-    items: ["HUAWEI 平板"],
+    items: ["HUAWEI平板"],
     drawnCount: 0,
     isFirstPrize: true,
   },
@@ -59,15 +58,39 @@ export const PRIZE_POOLS: PrizePool[] = [
     drawnCount: 0,
   },
   {
-    id: "redpacket",
+    id: "redpacket-1",
+    name: "奋斗者红包",
+    items: generateItems(["奋斗者红包188元", 11]),
+    drawnCount: 0,
+  },
+  {
+    id: "redpacket-2",
+    name: "大吉大利红包",
+    items: generateItems(["大吉大利奖666元", 8]),
+    drawnCount: 0,
+  },
+  {
+    id: "redpacket-3",
+    name: "十周年锦鲤红包",
+    items: generateItems(["十周年锦鲤888元", 5]),
+    drawnCount: 0,
+  },
+  {
+    id: "redpacket-4",
     name: "新年红包",
-    items: generateItems(["88元现金红包", 5]),
+    items: generateItems(["88元现金红包", 7]),
+    drawnCount: 0,
+  },
+  {
+    id: "blindbox",
+    name: "盲盒",
+    items: shuffle([...BLIND_BOX_ITEMS]),
     drawnCount: 0,
   },
   {
     id: "lucky",
-    name: "幸运奖",
-    items: shuffle([...LUCKY_POOL_ITEMS]), // 打乱顺序
+    name: "幸运礼",
+    items: generateItems(["刮刮乐&彩票（幸运奖）", 2]),
     drawnCount: 0,
   },
 ];

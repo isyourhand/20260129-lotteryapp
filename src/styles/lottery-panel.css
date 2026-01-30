@@ -91,13 +91,37 @@
 .lottery-card.revealing-winner.first-prize {
   background:
     linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
-    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box;
-  background-size: 200% 100%, 300% 100%;
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box !important;
+  background-size: 200% 100%, 300% 100% !important;
   box-shadow:
     0 0 50px rgba(255, 0, 0, 0.8),
-    inset 0 0 20px rgba(255, 0, 0, 0.5);
-  animation: winnerPulse 0.6s ease-in-out infinite alternate,
-             redBorderFlow 2s linear infinite;
+    inset 0 0 20px rgba(255, 0, 0, 0.5) !important;
+  animation: redPulse 0.6s ease-in-out infinite alternate,
+             redBorderFlow 2s linear infinite !important;
+}
+
+/* 中奖卡片脉冲动画 */
+@keyframes winnerPulse {
+  0% {
+    box-shadow:
+      0 0 50px rgba(255, 215, 0, 0.8),
+      inset 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  100% {
+    box-shadow:
+      0 0 70px rgba(255, 215, 0, 1),
+      inset 0 0 30px rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* 金色边框发光动画 */
+@keyframes borderGlow {
+  0% {
+    background-position: 0% 50%, 0% 50%;
+  }
+  100% {
+    background-position: 0% 50%, 300% 50%;
+  }
 }
 
 /* 红色边框流动动画 */
@@ -201,29 +225,18 @@
    一等奖飞出卡片特效 - 红色流动光芒
    ========================================= */
 .winner-card-static.first-prize {
-  background-image:
-    linear-gradient(135deg, #8b0000 0%, #4a0000 100%),
-    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  background-size: 200% 100%, 300% 100%;
-  border: 3px solid transparent;
+  background:
+    linear-gradient(135deg, #8b0000 0%, #4a0000 100%) padding-box,
+    linear-gradient(90deg, #ff0000, #ff6b6b, #ff0000, #ff4444, #ff0000) border-box !important;
+  background-size: 200% 100%, 300% 100% !important;
+  border: 3px solid transparent !important;
   box-shadow:
     0 0 30px rgba(255, 0, 0, 0.8),
-    0 0 60px rgba(255, 0, 0, 0.5);
+    0 0 60px rgba(255, 0, 0, 0.5) !important;
   animation:
     flyToPosition 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     redBorderFlow 2s linear infinite,
-    redPulse 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes redBorderFlow {
-  0% {
-    background-position: 0% 50%, 0% 50%;
-  }
-  100% {
-    background-position: 0% 50%, 300% 50%;
-  }
+    redPulse 1.5s ease-in-out infinite alternate !important;
 }
 
 @keyframes redPulse {

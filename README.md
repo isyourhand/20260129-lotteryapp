@@ -1,261 +1,204 @@
-现在要修改的是抽奖逻辑，
-目前的抽奖逻辑是什么，分出五个奖，每个奖有不同的名额，最低的奖项抽二十个人，特等奖只抽一个，从最低的奖开始抽，抽中的人不再参与后续抽奖。
-相关代码如下：
-app.tsx 的代码你已经看过了，这里就不贴了。
+# Lottery App - 3D 抽奖系统
 
-```js
-// src/services/lottery.ts
-import type { Participant } from '../types';
+一个基于 React + Electron + TypeScript 开发的桌面端 3D 抽奖应用，支持 Excel 导入参会人员、多奖池管理、3D 球体动画效果和获奖结果导出。
 
-/**
- * 随机洗牌算法 (Fisher-Yates Shuffle)
- */
-const shuffle = <T>(array: T[]): T[] => {
-  const newArr = [...array];
-  for (let i = newArr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-  }
-  return newArr;
-};
+## 功能特性
 
-/**
- * 抽取逻辑
- * @param pool 当前未中奖的人员池
- * @param count 要抽取的数量
- * @returns [中奖者列表, 剩余人员列表]
- */
-export const drawWinners = (
-  pool: Participant[],
-  count: number
-): [Participant[], Participant[]] => {
-  // 防止抽取人数超过池子总数
-  const safeCount = Math.min(count, pool.length);
-  const shuffled = shuffle(pool);
+### 核心功能
+- **Excel 导入**: 支持从 Excel 文件导入参会人员名单
+- **多奖池管理**: 支持配置多个奖池，每个奖池独立设置奖品和数量
+- **3D 球体动画**: 参会人员卡片以 3D 球体形式展示，支持旋转动画
+- **智能抽取**: 支持一次抽取多人，自动分配具体奖品
+- **结果导出**: 中奖结果可导出为 Excel 文件
+- **历史记录**: 自动保存抽奖历史，支持重新抽奖
 
-  const winners = shuffled.slice(0, safeCount);
-  const remaining = shuffled.slice(safeCount);
+### 视觉效果
+- **3D 球体渲染**: 基于 CSS3 3D 变换实现球体效果
+- **物理引擎**: 自定义物理引擎控制球体旋转（加速、减速、停止）
+- **翻转卡片**: 中奖结果以翻转卡片形式展示
+- **一等奖特效**: 一等奖中奖卡片带有红色流动光芒特效
+- **扁平化设计**: 侧边栏、弹窗等采用扁平化设计风格
 
-  return [winners, remaining];
-};
-```
+### 技术栈
+- **前端框架**: React 19 + TypeScript
+- **桌面端**: Electron 39
+- **构建工具**: Vite 7
+- **样式**: CSS3 + CSS Variables
+- **Excel 处理**: SheetJS (xlsx)
+- **动画**: CSS3 Animations + canvas-confetti
 
-```js
-// lottery-app\src\components\LotteryPanel.tsx
-import React, { useMemo, useRef, type CSSProperties } from "react";
-import type { Participant, LotteryState } from "../types";
-import { useSpherePhysics } from "../hooks/useSpherePhysics"; // 引入刚才写的 hook
-
-const CONSTANTS = {
-  SPHERE_MAX: 120,
-  GRID: { W: 150, H: 80, COLS: 2 },
-  RADIUS: { BASE: 180, GROWTH: 15 },
-};
-
-interface Props {
-  pool: Participant[];
-  lotteryState: LotteryState;
-  currentWinners: Participant[];
-  friction: number;
-}
-
-export const LotteryPanel: React.FC<Props> = ({
-  pool,
-  lotteryState,
-  currentWinners,
-  friction,
-}) => {
-  const displayCount = Math.min(CONSTANTS.SPHERE_MAX, pool.length);
-
-  // 1. 创建物理容器的 Ref
-  const sphereRef = useRef<HTMLDivElement>(null);
-
-  // 2. 接入物理引擎 (核心修改)
-  // 这会让 sphereRef 指向的 div 根据 state 进行丝滑的加减速旋转
-  useSpherePhysics(sphereRef, lotteryState, friction);
-
-  const winnerMap = useMemo(
-    () => new Map(currentWinners.map((w) => [w.id, w.revealing ?? 0])),
-    [currentWinners],
-  );
-
-  // ===================== Layer A: 3D Sphere =====================
-  const sphereCards = useMemo(() => {
-    if (!pool.length) return [];
-    const radius =
-      CONSTANTS.RADIUS.BASE + Math.sqrt(displayCount) * CONSTANTS.RADIUS.GROWTH;
-    const goldenRatio = (1 + 5 ** 0.5) / 2;
-    const yRange = displayCount < 30 ? 0.4 : displayCount < 60 ? 0.6 : 0.9;
-
-    return pool.slice(0, displayCount).map((p, i) => {
-      const isRevealed = winnerMap.get(p.id) === 1;
-      const k = -1 + (2 * i) / (displayCount - 1 || 1);
-      const theta = (2 * Math.PI * i) / goldenRatio;
-      const phi = Math.acos(-k * yRange);
-
-      // 注意：这里只处理每个卡片相对于球心的静态位置 (rotateX, translateZ)
-      // 整体的 rotateY 交给父容器 sphereRef 动态控制
-      const transform = `rotateY(${(theta * 180) / Math.PI}deg) rotateX(${
-        (phi * 180) / Math.PI - 90
-      }deg) translateZ(${radius}px)`;
-
-      return (
-        <div
-          key={p.id}
-          className={`lottery-card ${isRevealed ? "revealing-winner" : ""}`}
-          style={{ transform }}
-        >
-          <span className="card-name">{p.name}</span>
-          <div className="card-dept">{p.department}</div>
-        </div>
-      );
-    });
-  }, [pool, displayCount, winnerMap]);
-
-  // ===================== Layer B: Winner Cards (保持不变) =====================
-  const winnerCards = useMemo(() => {
-    const revealedWinners = currentWinners.filter((w) => w.revealing === 1);
-    const total = currentWinners.length;
-    if (!total) return null;
-    const cols = Math.min(CONSTANTS.GRID.COLS, Math.ceil(Math.sqrt(total)));
-    const totalRows = Math.ceil(total / cols);
-
-    return revealedWinners.map((winner) => {
-      const index = currentWinners.findIndex((w) => w.id === winner.id);
-      const row = Math.floor(index / cols);
-      const col = index % cols;
-      const currentRowCount =
-        row === totalRows - 1 && total % cols !== 0 ? total % cols : cols;
-      const tx = (col - (currentRowCount - 1) / 2) * CONSTANTS.GRID.W;
-      const ty = (row - (totalRows - 1) / 2) * CONSTANTS.GRID.H;
-      return (
-        <div
-          key={winner.id}
-          className="winner-card-static"
-          style={
-            {
-              "--tx": `calc(32vw + ${tx}px)`,
-              "--ty": `${ty}px`,
-            } as CSSProperties
-          }
-        >
-          <span className="card-name" style={{ fontSize: "1.2rem" }}>
-            {winner.name}
-          </span>
-          <div className="card-dept">{winner.department}</div>
-        </div>
-      );
-    });
-  }, [currentWinners]);
-
-  return (
-    <>
-      <div className="canvas-area">
-        {/* 核心修改：
-            1. 移除了 className 中的 idle/running 状态类
-            2. 绑定 ref 给 useSpherePhysics 控制
-            3. style 中移除 transform，完全由 JS 接管
-        */}
-        <div className="sphere-container" ref={sphereRef}>
-          {sphereCards}
-        </div>
-      </div>
-      <div className="winner-layer">{winnerCards}</div>
-    </>
-  );
-};
-```
-
-```js
-// src/types/index.ts
-
-// 对应 Excel 中的每一行数据
-export interface Participant {
-  id: number | string; // 序号
-  name: string; // 姓名
-  department: string; // 部门
-  revealing: 0 | 1;
-}
-
-// 奖项配置
-export interface PrizeConfig {
-  level: number; // 奖项级别 (如 1, 2, 3, 4, 5)
-  name: string; // 奖项名称 (如 "三等奖", "特等奖")
-  count: number; // 该奖项抽取人数
-}
-
-// 抽奖结果
-export interface LotteryResult {
-  prizeLevel: number;
-  winners: Participant[];
-}
-
-export type LotteryState = "idle" | "rolling" | "revealing";
+## 项目结构
 
 ```
-
-# 现在要修改成什么呢？
-
-最新的奖项如下，
-
-```xlsx
-项目 奖品 数量
-一等奖 HUAWEI平板 1
-二等奖 小米手表 2
-三等奖 小米手环 5
-阳光普照奖 一日带薪假 5
-红包 88元现金红包 5
-幸运奖 “全家桶洗护套装 2
-马上有福玩偶 1
-马上有钱玩偶 1
-美的养生壶 2
-九阳破壁机 1
-小米吹风机 1
-小米充电宝 1
-工位护腰靠枕 1
-发热鼠标垫 1
-户外露营桌椅折叠 1
-苏泊尔电烤箱 1
-户外帐篷 1
-砂锅 1
-小米体脂秤 1
-颈部按摩枕 2
-蓝牙自拍杆 1
-马年公仔 1
-刮刮乐&彩票 3”
+lottery-app/
+├── electron/                 # Electron 主进程
+│   └── main.ts              # 主进程入口
+├── src/
+│   ├── components/          # React 组件
+│   │   ├── App.tsx         # 主应用组件
+│   │   ├── LotteryPanel.tsx    # 3D 抽奖面板
+│   │   ├── Sidebar.tsx     # 侧边栏（奖池选择）
+│   │   ├── WinnerModal.tsx # 中奖结果弹窗
+│   │   ├── UploadLayer.tsx # Excel 上传层
+│   │   ├── ControlBar.tsx  # 控制栏
+│   │   └── PrizeHeader.tsx # 奖品标题
+│   ├── hooks/              # 自定义 Hooks
+│   │   ├── useLottery.ts   # 抽奖逻辑
+│   │   └── useSpherePhysics.ts # 球体物理引擎
+│   ├── services/           # 服务层
+│   │   ├── lottery.ts      # 抽奖算法
+│   │   ├── physicsUtils.ts # 物理工具函数
+│   │   └── xlsx.ts         # Excel 处理
+│   ├── config/
+│   │   └── prizes.ts       # 奖池配置
+│   ├── styles/             # 样式文件
+│   │   ├── base.css        # 基础样式
+│   │   ├── main.css        # 主样式
+│   │   ├── sidebar.css     # 侧边栏样式
+│   │   ├── lottery-panel.css   # 抽奖面板样式
+│   │   ├── winner-modal.css    # 中奖弹窗样式
+│   │   └── control-bar.css # 控制栏样式
+│   ├── types/
+│   │   └── index.ts        # TypeScript 类型定义
+│   └── main.tsx            # 渲染进程入口
+├── dist/                   # 构建输出
+├── dist-electron/          # Electron 构建输出
+└── package.json
 ```
 
-可以看到现在多加了一个幸运奖，这个幸运奖的奖项不是固定的。
-所以要修改的点就是，在这个新的奖项，新加一个逻辑，指定中奖人具体获取了什么奖励。
-所以在卡片UI中，中奖人的卡片现在还要加上中了什么
+## 核心模块说明
 
----
+### 1. 3D 球体系统 (LotteryPanel)
+- 使用 CSS3 `transform-style: preserve-3d` 实现 3D 效果
+- 基于黄金角算法均匀分布卡片在球体表面
+- 支持鼠标滚轮缩放球体
 
-目前的文件命名和文件路径
-.gitignore
-README.md
-dist-electron/main.js
-electron/main.ts
-electron/preload.ts
-eslint.config.js
-index.html
-package-lock.json
-package.json
-public/index.html
-public/vite.svg
-src/App.tsx
-src/components/ControlBar.tsx
-src/components/LotteryPanel.tsx
-src/components/PrizeHeader.tsx
-src/components/WinnerModal.tsx
-src/hooks/useSpherePhysics.ts
-src/main.tsx
-src/services/lottery.ts
-src/services/physicsUtils.ts
-src/services/xlsx.ts
-src/styles/main.css
-src/types/index.ts
-tsconfig.app.json
-tsconfig.json
-tsconfig.node.json
-vite.config.ts
+### 2. 物理引擎 (useSpherePhysics)
+- 模拟真实物理效果：加速、摩擦减速、停止
+- 使用 `requestAnimationFrame` 实现流畅动画
+- 支持随机停止角度，增加不确定性
+
+### 3. 奖池系统 (Sidebar + prizes.ts)
+- 支持配置多类型奖池（一等奖、二等奖、红包、盲盒等）
+- 每个奖池可设置独立奖品列表和数量
+- 实时显示剩余奖品数量
+- 支持多奖品奖池（如盲盒）随机分配
+
+### 4. 智能布局算法 (WinnerModal)
+- 根据中奖人数自动计算最佳卡片布局
+- 自适应视口大小，确保卡片比例和可读性
+- 单列到多列自动切换，保持视觉平衡
+
+## 配置说明
+
+### 奖池配置 (src/config/prizes.ts)
+```typescript
+export const PRIZE_POOLS: PrizePool[] = [
+  {
+    id: "first",
+    name: "一等奖",
+    items: ["HUAWEI平板"],
+    drawnCount: 0,
+    isFirstPrize: true,  // 启用一等奖特效
+  },
+  // ... 其他奖池
+];
+```
+
+### 当前奖池列表
+
+| 奖池       | 奖品                  | 数量 |
+| :--------- | :-------------------- | :--- |
+| 一等奖     | HUAWEI平板            | 1    |
+| 二等奖     | 小米手表              | 2    |
+| 三等奖     | 小米手环              | 5    |
+| 阳光普照奖 | 一日带薪假            | 5    |
+| 红包-1     | 奋斗者红包188元       | 11   |
+| 红包-2     | 大吉大利奖666元       | 8    |
+| 红包-3     | 十周年锦鲤888元       | 5    |
+| 红包-4     | 88元现金红包          | 7    |
+| 盲盒       | 全家桶洗护套装        | 2    |
+| 盲盒       | 马上有福玩偶          | 1    |
+| 盲盒       | 马上有钱玩偶          | 1    |
+| 盲盒       | 美的养生壶            | 2    |
+| 盲盒       | 九阳破壁机            | 1    |
+| 盲盒       | 小米吹风机            | 1    |
+| 盲盒       | 小米充电宝            | 1    |
+| 盲盒       | 工位护腰靠枕          | 1    |
+| 盲盒       | 发热鼠标垫            | 1    |
+| 盲盒       | 户外露营桌椅折叠      | 1    |
+| 盲盒       | 苏泊尔电烤箱          | 1    |
+| 盲盒       | 户外帐篷              | 1    |
+| 盲盒       | 砂锅                  | 1    |
+| 盲盒       | 小米体脂秤            | 1    |
+| 盲盒       | 颈部按摩枕            | 2    |
+| 盲盒       | 蓝牙自拍杆            | 1    |
+| 盲盒       | 马年公仔              | 1    |
+| 幸运礼     | 刮刮乐&彩票（幸运奖） | 2    |
+
+### Excel 导入格式
+Excel 文件需包含以下列：
+- `姓名`: 参会人员姓名
+- `部门`: 所属部门（可选）
+
+## 开发命令
+
+```bash
+# 安装依赖
+npm install
+
+# 开发模式
+npm run dev
+
+# 构建应用
+npm run build
+
+# 预览构建
+npm run preview
+```
+
+## 使用流程
+
+1. **导入名单**: 上传包含参会人员信息的 Excel 文件
+2. **选择奖池**: 从侧边栏选择要抽取的奖池
+3. **设置数量**: 调整本次抽取的人数
+4. **开始抽奖**: 点击"开始抽奖"按钮，3D 球体开始旋转
+5. **查看结果**: 球体停止后，中奖卡片飞出并翻转显示结果
+6. **导出结果**: 可随时导出中奖名单到 Excel
+
+## 技术亮点
+
+### 1. 性能优化
+- 使用 `will-change` 优化动画性能
+- 卡片使用 `useMemo` 避免重复渲染
+- 3D 变换使用 GPU 加速
+
+### 2. 响应式设计
+- 弹窗尺寸根据视口和中奖人数自适应
+- 侧边栏固定高度，内容区域可滚动
+- 卡片大小随人数自动调整，保证可读性
+
+### 3. 可访问性
+- 支持键盘操作
+- 清晰的视觉反馈（选中态、禁用态）
+- 动画过渡平滑，避免闪烁
+
+## 浏览器/平台支持
+
+- **桌面端**: Windows, macOS, Linux (通过 Electron)
+- **Web 端**: Chrome, Firefox, Safari, Edge (现代浏览器)
+
+## 注意事项
+
+1. Excel 导入的文件格式需为 `.xlsx`
+2. 一等奖中奖卡片会有特殊红色特效
+3. 抽奖过程中请勿刷新页面，以免丢失进度
+4. 历史记录保存在浏览器 localStorage 中
+
+## 未来扩展
+
+- [ ] 支持自定义背景和主题色
+- [ ] 增加音效支持
+- [ ] 支持多轮抽奖自动切换
+- [ ] 添加中奖者去重验证
+- [ ] 支持导出 PDF 中奖证书
