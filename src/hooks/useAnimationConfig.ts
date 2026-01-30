@@ -108,12 +108,6 @@ export const useAnimationConfig = () => {
       // 总时长
       singleCardTotal: `${CARD_ANIMATION.TOTAL}ms`,
       cardInterval: `${LOTTERY_FLOW.CARD_INTERVAL}ms`,
-      // 弹窗延迟计算示例
-      modalDelayExample: {
-        "1人": `${LOTTERY_FLOW.getModalDelay(1)}ms`,
-        "3人": `${LOTTERY_FLOW.getModalDelay(3)}ms`,
-        "5人": `${LOTTERY_FLOW.getModalDelay(5)}ms`,
-      },
       // keyframes
       keyframes: {
         flyToCenterEnd: `${flyToCenterPercent}%`,

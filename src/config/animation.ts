@@ -48,26 +48,6 @@ export const LOTTERY_FLOW = {
     return CARD_ANIMATION.TOTAL;
   },
 
-  /**
-   * 计算弹窗出现延迟（毫秒）
-   * @param winnerCount 中奖人数
-   * @returns 弹窗应该延迟多少毫秒后弹出
-   *
-   * 弹窗在所有卡片飞行动画完成后才弹出：
-   * - 第1张卡片：0ms 开始，TOTAL ms 结束
-   * - 第2张卡片：INTERVAL ms 开始，INTERVAL + TOTAL ms 结束
-   * - ...
-   * - 第N张卡片：(N-1)*INTERVAL ms 开始，(N-1)*INTERVAL + TOTAL ms 结束
-   *
-   * 最后一张卡片结束时间 = (N-1)*INTERVAL + TOTAL
-   * 由于 INTERVAL = TOTAL，所以最后一张结束时间 = N * TOTAL
-   */
-  getModalDelay: (winnerCount: number) => {
-    if (winnerCount <= 0) return 0;
-    console.log(CARD_ANIMATION);
-    return winnerCount * CARD_ANIMATION.TOTAL;
-  },
-
   /** 弹窗出现后，问号卡片开始翻转的延迟（毫秒） */
   FLIP_DELAY: 300,
 

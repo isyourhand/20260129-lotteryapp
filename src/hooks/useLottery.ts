@@ -155,10 +155,8 @@ export const useLotteryGame = () => {
   const reveal = useCallback(
     (ws: Participant[], idx: number, pool: PrizePool, drawnItems: string[]) => {
       if (idx >= ws.length) {
-        // 所有卡片已亮起，等待最后一张完成飞行动画后弹出弹窗
-        // 弹窗延迟 = 所有卡片的动画时间总和
-        const modalDelay = LOTTERY_FLOW.getModalDelay(ws.length);
-        console.log(modalDelay, ws.length);
+        // 所有卡片已递归点亮并播放完飞行动画
+        // 递归调用链本身已经累积了足够的等待时间，无需额外延迟
         timer.current = window.setTimeout(
           () => finalize(ws, pool, drawnItems),
           0
@@ -170,11 +168,6 @@ export const useLotteryGame = () => {
         prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w))
       );
       // 等待当前卡片完成整个动画流程后，再开始下一张
-      console.log(
-        `[reveal] idx=${idx}, CARD_INTERVAL=${
-          LOTTERY_FLOW.CARD_INTERVAL
-        }ms, 下次揭晓idx=${idx + 1}`
-      );
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
         LOTTERY_FLOW.CARD_INTERVAL
