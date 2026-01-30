@@ -13,14 +13,11 @@ export const useAnimationConfig = () => {
   useEffect(() => {
     const root = document.documentElement;
 
-    // 计算并设置 CSS 变量
-    const totalSeconds = toCssSeconds(CARD_ANIMATION.TOTAL);
-    root.style.setProperty("--card-anim-total", totalSeconds);
-
-    // 调试：检查变量是否正确设置
-    const computed = getComputedStyle(root).getPropertyValue("--card-anim-total");
-    // eslint-disable-next-line no-console
-    console.log("[Animation Config] CSS 变量 --card-anim-total:", computed, "(设置值:", totalSeconds, ")");
+    // =========================================
+    // 设置 CSS 变量 - 所有动画时间配置
+    // =========================================
+    
+    // 三阶段动画时间
     root.style.setProperty(
       "--card-anim-fly-to-center",
       toCssSeconds(CARD_ANIMATION.FLY_TO_CENTER),
@@ -33,14 +30,20 @@ export const useAnimationConfig = () => {
       "--card-anim-fly-to-grid",
       toCssSeconds(CARD_ANIMATION.FLY_TO_GRID),
     );
+    
+    // 单张卡片总时长（CSS动画用这个）
+    root.style.setProperty(
+      "--card-anim-total",
+      toCssSeconds(CARD_ANIMATION.TOTAL),
+    );
+    
+    // 卡片间隔（串行揭晓用）
     root.style.setProperty(
       "--lottery-card-interval",
       toCssSeconds(LOTTERY_FLOW.CARD_INTERVAL),
     );
-    root.style.setProperty(
-      "--lottery-modal-delay",
-      toCssSeconds(LOTTERY_FLOW.MODAL_DELAY),
-    );
+    
+    // 弹窗内翻转动画延迟
     root.style.setProperty(
       "--lottery-flip-delay",
       toCssSeconds(LOTTERY_FLOW.FLIP_DELAY),
@@ -50,7 +53,9 @@ export const useAnimationConfig = () => {
       `${LOTTERY_FLOW.FLIP_INTERVAL}ms`,
     );
 
-    // 动态注入 keyframes 规则（覆盖 CSS 文件中的静态定义）
+    // =========================================
+    // 动态注入 keyframes 规则
+    // =========================================
     const keyframes = getKeyframes();
     const styleId = "dynamic-animation-keyframes";
     let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
@@ -92,14 +97,24 @@ export const useAnimationConfig = () => {
       }
     `;
 
-    // 在控制台输出当前配置（方便调试）
-    // eslint-disable-next-line no-console
+    // =========================================
+    // 调试输出
+    // =========================================
     console.log("[Animation Config] 动画配置已同步:", {
-      total: CARD_ANIMATION.TOTAL,
-      flyToCenter: CARD_ANIMATION.FLY_TO_CENTER,
-      showInCenter: CARD_ANIMATION.SHOW_IN_CENTER,
-      flyToGrid: CARD_ANIMATION.FLY_TO_GRID,
-      cardInterval: LOTTERY_FLOW.CARD_INTERVAL,
+      // 三阶段时间
+      flyToCenter: `${CARD_ANIMATION.FLY_TO_CENTER}ms`,
+      showInCenter: `${CARD_ANIMATION.SHOW_IN_CENTER}ms`,
+      flyToGrid: `${CARD_ANIMATION.FLY_TO_GRID}ms`,
+      // 总时长
+      singleCardTotal: `${CARD_ANIMATION.TOTAL}ms`,
+      cardInterval: `${LOTTERY_FLOW.CARD_INTERVAL}ms`,
+      // 弹窗延迟计算示例
+      modalDelayExample: {
+        "1人": `${LOTTERY_FLOW.getModalDelay(1)}ms`,
+        "3人": `${LOTTERY_FLOW.getModalDelay(3)}ms`,
+        "5人": `${LOTTERY_FLOW.getModalDelay(5)}ms`,
+      },
+      // keyframes
       keyframes: {
         flyToCenterEnd: `${flyToCenterPercent}%`,
         showInCenterEnd: `${showInCenterPercent}%`,

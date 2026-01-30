@@ -1,4 +1,4 @@
-// lottery-app\src\components\LotteryPanel.tsx
+// src/components/LotteryPanel.tsx
 import React, {
   useMemo,
   useRef,
@@ -7,7 +7,8 @@ import React, {
   type CSSProperties,
 } from "react";
 import type { Participant, LotteryState } from "../types";
-import { useSpherePhysics } from "../hooks/useSpherePhysics"; // 引入刚才写的 hook
+import { useSpherePhysics } from "../hooks/useSpherePhysics";
+import { LOTTERY_FLOW } from "../config/animation";
 
 const CONSTANTS = {
   SPHERE_MAX: 120,
@@ -238,10 +239,10 @@ export const LotteryPanel: React.FC<Props> = ({
         const centerOffsetX = winWidth / 2 - targetX;
         const centerOffsetY = winHeight / 2 - targetY;
 
-        // 动画延迟：串行动画，每张卡片动画耗时 3.5 秒
-        // 前一张卡片完全飞到右边后，下一张卡片才开始动画
-        const ANIMATION_DURATION = 3500; // 3.5 秒
-        const delay = revealedIndex * ANIMATION_DURATION;
+        // 动画延迟：卡片亮起后立即开始飞（delay=0）
+        // 因为卡片是在 revealing=1 时才动态创建的，JS已经控制了创建时机
+        // 如果设置 delay > 0，会导致卡片到位后额外等待
+        const delay = 0;
 
         return (
         <div

@@ -1,5 +1,13 @@
 /* src/styles/lottery-panel.css */
 /* 3D 抽奖球面板样式 */
+/* 
+ * CSS 变量说明（由 JS 动态设置）：
+ * --card-anim-total: 单张卡片动画总时长（默认 3.5s）
+ * --card-anim-fly-to-center: 飞到中央时间（默认 0.5s）
+ * --card-anim-show-in-center: 中央展示时间（默认 2s）
+ * --card-anim-fly-to-grid: 飞到网格时间（默认 1s）
+ * --lottery-card-interval: 卡片间隔（默认 3.5s）
+ */
 
 /* 3D 舞台区域 */
 .canvas-area {

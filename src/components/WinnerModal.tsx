@@ -1,6 +1,6 @@
 // src/components/WinnerModal.tsx
 import React, { useEffect, useState } from "react";
-import { LOTTERY_FLOW } from "../config/animation";
+import { CARD_ANIMATION, LOTTERY_FLOW } from "../config/animation";
 import type { Participant } from "../types";
 
 interface Props {

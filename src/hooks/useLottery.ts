@@ -66,7 +66,7 @@ export const useLotteryGame = () => {
       if (!file) return;
       setPool(await parseExcel(file));
     },
-    [],
+    []
   );
 
   // 彩纸动画触发函数
@@ -111,7 +111,7 @@ export const useLotteryGame = () => {
         setDrawCount(1);
       }
     },
-    [prizePools],
+    [prizePools]
   );
 
   // 设置抽取数量
@@ -127,8 +127,8 @@ export const useLotteryGame = () => {
       // 更新奖池状态
       setPrizePools((prev) =>
         prev.map((p) =>
-          p.id === pool.id ? { ...p, drawnCount: p.drawnCount + ws.length } : p,
-        ),
+          p.id === pool.id ? { ...p, drawnCount: p.drawnCount + ws.length } : p
+        )
       );
 
       // 添加到历史记录
@@ -149,30 +149,38 @@ export const useLotteryGame = () => {
       setSelectedPool(null);
       triggerConfetti();
     },
-    [triggerConfetti],
+    [triggerConfetti]
   );
 
   const reveal = useCallback(
     (ws: Participant[], idx: number, pool: PrizePool, drawnItems: string[]) => {
       if (idx >= ws.length) {
-        // 所有卡片已亮起，等待最后一张完成飞行动画后结束
+        // 所有卡片已亮起，等待最后一张完成飞行动画后弹出弹窗
+        // 弹窗延迟 = 所有卡片的动画时间总和
+        const modalDelay = LOTTERY_FLOW.getModalDelay(ws.length);
+        console.log(modalDelay, ws.length);
         timer.current = window.setTimeout(
           () => finalize(ws, pool, drawnItems),
-          CARD_ANIMATION.TOTAL + LOTTERY_FLOW.MODAL_DELAY,
+          0
         );
         return;
       }
       // 点亮当前卡片（触发 CSS 飞行动画）
       setWinners((prev) =>
-        prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w)),
+        prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w))
       );
       // 等待当前卡片完成整个动画流程后，再开始下一张
+      console.log(
+        `[reveal] idx=${idx}, CARD_INTERVAL=${
+          LOTTERY_FLOW.CARD_INTERVAL
+        }ms, 下次揭晓idx=${idx + 1}`
+      );
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
-        LOTTERY_FLOW.CARD_INTERVAL,
+        LOTTERY_FLOW.CARD_INTERVAL
       );
     },
-    [finalize],
+    [finalize]
   );
 
   const start = useCallback(() => {
@@ -185,7 +193,7 @@ export const useLotteryGame = () => {
     const actualDrawCount = Math.min(
       drawCount,
       remainingItems.length,
-      pool.length,
+      pool.length
     );
 
     if (actualDrawCount <= 0) {
@@ -209,7 +217,7 @@ export const useLotteryGame = () => {
       setWinners(drawn.map((w) => ({ ...w, revealing: 0 })));
       setStatus("revealing");
       reveal(drawn, 0, selectedPool, shuffledItems);
-    }, 1500);
+    }, 2500);
   }, [status, selectedPool, drawCount, pool, reveal]);
 
   const reset = useCallback(() => {
@@ -222,21 +230,18 @@ export const useLotteryGame = () => {
     (poolId: string) => {
       return history.filter((h) => h.poolId === poolId);
     },
-    [history],
+    [history]
   );
 
   const downloadResults = useCallback(() => {
     // 按奖池分组导出
-    const grouped = history.reduce(
-      (acc, record) => {
-        if (!acc[record.poolName]) {
-          acc[record.poolName] = [];
-        }
-        acc[record.poolName].push(...record.winners);
-        return acc;
-      },
-      {} as Record<string, Participant[]>,
-    );
+    const grouped = history.reduce((acc, record) => {
+      if (!acc[record.poolName]) {
+        acc[record.poolName] = [];
+      }
+      acc[record.poolName].push(...record.winners);
+      return acc;
+    }, {} as Record<string, Participant[]>);
 
     exportToExcel(grouped);
   }, [history]);
@@ -259,7 +264,7 @@ export const useLotteryGame = () => {
     ? Math.min(
         selectedPool.items.length - selectedPool.drawnCount,
         pool.length,
-        50,
+        50
       )
     : 0;
 

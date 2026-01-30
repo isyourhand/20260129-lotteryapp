@@ -1,48 +1,72 @@
 // src/config/animation.ts
 // 动画时间配置 - 修改这里的值会自动同步到所有相关代码
-// 注意：修改后需要重新构建项目
+// ⚠️ 注意：修改后需要重新构建项目
 
 /**
- * 中奖卡片飞行动画配置
- * 三阶段动画：球体 -> 屏幕中央展示 -> 右侧网格
+ * =========================================
+ * 中奖卡片飞行动画配置 - 三阶段动画
+ * =========================================
+ * 动画流程：球体位置 -> 屏幕中央展示 -> 右侧网格
+ *
+ * 第1阶段：卡片从球体飞到屏幕中央
+ * 第2阶段：卡片在屏幕中央展示
+ * 第3阶段：卡片从中央飞到右侧网格排列
  */
 export const CARD_ANIMATION = {
-  /** 飞到屏幕中央的时间（毫秒） */
+  /** 第1阶段：飞到屏幕中央的时间（毫秒） */
   FLY_TO_CENTER: 500,
 
-  /** 在屏幕中央展示的时间（毫秒） */
+  /** 第2阶段：在屏幕中央展示的时间（毫秒） */
   SHOW_IN_CENTER: 1000,
 
-  /** 从中央飞到右侧网格的时间（毫秒） */
-  FLY_TO_GRID: 500,
+  /** 第3阶段：从中央飞到右侧网格的时间（毫秒） */
+  FLY_TO_GRID: 1000,
 
-  /** 总动画时长（自动计算） */
+  /** 单张卡片动画总时长（自动计算） */
   get TOTAL() {
     return this.FLY_TO_CENTER + this.SHOW_IN_CENTER + this.FLY_TO_GRID;
+  },
+
+  /** 将毫秒转换为秒（用于CSS） */
+  get totalSeconds() {
+    return this.TOTAL / 1000;
   },
 } as const;
 
 /**
+ * =========================================
  * 抽奖流程控制配置
+ * =========================================
  */
 export const LOTTERY_FLOW = {
   /**
-   * 每张卡片动画之间的额外间隔（毫秒）
-   * 控制前一张动画完成后，等待多久才开始下一张
-   * 设为 0 表示前一张飞到右边后立即开始下一张（无额外等待）
-   */
-  EXTRA_DELAY: 0,
-
-  /**
-   * 每张卡片动画之间的间隔（自动计算）
-   * = 动画总时长 + 额外间隔
+   * 每张卡片动画之间的间隔（毫秒）
+   * 串行动画：前一张完全到位后，下一张才开始
+   * = 单张卡片总时长
    */
   get CARD_INTERVAL() {
-    return CARD_ANIMATION.TOTAL + this.EXTRA_DELAY;
+    return CARD_ANIMATION.TOTAL;
   },
 
-  /** 所有卡片到位后，弹窗出现的延迟（毫秒） */
-  MODAL_DELAY: 500,
+  /**
+   * 计算弹窗出现延迟（毫秒）
+   * @param winnerCount 中奖人数
+   * @returns 弹窗应该延迟多少毫秒后弹出
+   *
+   * 弹窗在所有卡片飞行动画完成后才弹出：
+   * - 第1张卡片：0ms 开始，TOTAL ms 结束
+   * - 第2张卡片：INTERVAL ms 开始，INTERVAL + TOTAL ms 结束
+   * - ...
+   * - 第N张卡片：(N-1)*INTERVAL ms 开始，(N-1)*INTERVAL + TOTAL ms 结束
+   *
+   * 最后一张卡片结束时间 = (N-1)*INTERVAL + TOTAL
+   * 由于 INTERVAL = TOTAL，所以最后一张结束时间 = N * TOTAL
+   */
+  getModalDelay: (winnerCount: number) => {
+    if (winnerCount <= 0) return 0;
+    console.log(CARD_ANIMATION);
+    return winnerCount * CARD_ANIMATION.TOTAL;
+  },
 
   /** 弹窗出现后，问号卡片开始翻转的延迟（毫秒） */
   FLIP_DELAY: 300,
