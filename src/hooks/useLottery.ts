@@ -152,18 +152,19 @@ export const useLotteryGame = () => {
   const reveal = useCallback(
     (ws: Participant[], idx: number, pool: PrizePool, drawnItems: string[]) => {
       if (idx >= ws.length) {
-        timer.current = window.setTimeout(() => finalize(ws, pool, drawnItems), 1000);
+        // 所有卡片已完成飞行动画，结束抽奖
+        timer.current = window.setTimeout(() => finalize(ws, pool, drawnItems), 500);
         return;
       }
+      // 点亮当前卡片（触发 CSS 飞行动画）
       setWinners((prev) =>
         prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w)),
       );
-      // 与 physicsUtils.ts 保持一致：delay = BASE_DELAY + progress * SPAN
-      const progress = idx / ws.length;
-      const delay = 500 + progress * 800;
+      // 等待当前卡片完成整个动画流程（3.5秒）后，再开始下一张
+      const CARD_ANIMATION_DURATION = 3500;
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
-        delay,
+        CARD_ANIMATION_DURATION,
       );
     },
     [finalize],

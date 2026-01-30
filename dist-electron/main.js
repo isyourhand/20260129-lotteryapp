@@ -1,36 +1,26 @@
-import { app, BrowserWindow } from "electron";
-import path from "path";
-import { fileURLToPath } from "url";
-const __filename$1 = fileURLToPath(import.meta.url);
-const __dirname$1 = path.dirname(__filename$1);
-const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-function createWindow() {
-  const win = new BrowserWindow({
+import { app as e, BrowserWindow as r } from "electron";
+import o from "path";
+import { fileURLToPath as l } from "url";
+const d = l(import.meta.url), t = o.dirname(d), i = process.env.VITE_DEV_SERVER_URL;
+function a() {
+  const n = new r({
     width: 1200,
     height: 800,
     webPreferences: {
       // 3. 这里现在可以使用 __dirname 了
-      preload: path.join(__dirname$1, "preload.js"),
-      nodeIntegration: false,
+      preload: o.join(t, "preload.js"),
+      nodeIntegration: !1,
       // 推荐安全设置
-      contextIsolation: true
+      contextIsolation: !0
       // 推荐安全设置
     }
   });
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    win.loadFile(path.join(__dirname$1, "../dist/index.html"));
-  }
+  i ? n.loadURL(i) : n.loadFile(o.join(t, "../dist/index.html"));
 }
-app.whenReady().then(createWindow);
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+e.whenReady().then(a);
+e.on("window-all-closed", () => {
+  process.platform !== "darwin" && e.quit();
 });
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+e.on("activate", () => {
+  r.getAllWindows().length === 0 && a();
 });

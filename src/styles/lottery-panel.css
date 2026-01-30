@@ -150,19 +150,37 @@
 
 
 /* =========================================
-   从球体实际位置飞出的动画
+   三阶段动画：球体 -> 屏幕中央展示 -> 右侧网格
    ========================================= */
 @keyframes flyFromSphereToGrid {
+  /* 阶段1: 从球体飞到屏幕中央 (0% ~ 14.3% = 0.5s/3.5s) */
   0% {
-    /* 从球体在屏幕上的实际位置开始（相对于目标位置的偏移） */
     transform:
       translate(var(--start-offset-x, 0px), var(--start-offset-y, 0px))
       scale(var(--start-scale, 1));
     opacity: 0;
   }
-  15% {
+  10% {
     opacity: 1;
   }
+  14.3% {
+    /* 到达屏幕中央，放大展示 */
+    transform:
+      translate(var(--center-offset-x, 0px), var(--center-offset-y, 0px))
+      scale(1.5);
+    opacity: 1;
+  }
+
+  /* 阶段2: 在屏幕中央展示 (14.3% ~ 71.4% = 2s/3.5s) */
+  71.4% {
+    /* 保持中央位置展示 */
+    transform:
+      translate(var(--center-offset-x, 0px), var(--center-offset-y, 0px))
+      scale(1.5);
+    opacity: 1;
+  }
+
+  /* 阶段3: 从中央飞到右侧网格 (71.4% ~ 100% = 1s/3.5s) */
   100% {
     /* 飞到目标位置（translate 归零） */
     transform:
@@ -200,7 +218,7 @@
   background-size: 200% 100%, 300% 100%;
   box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
   animation:
-    flyFromSphereToGrid 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    flyFromSphereToGrid 3.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     goldBorderFlow 2s linear infinite;
   will-change: transform, opacity;
   transform-origin: center center;
@@ -266,7 +284,7 @@
     0 0 30px rgba(255, 0, 0, 0.8),
     0 0 60px rgba(255, 0, 0, 0.5) !important;
   animation:
-    flyFromSphereToGrid 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    flyFromSphereToGrid 3.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     redBorderFlow 2s linear infinite,
     redPulse 1.5s ease-in-out infinite alternate !important;
 }

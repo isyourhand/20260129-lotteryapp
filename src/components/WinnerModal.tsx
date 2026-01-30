@@ -18,17 +18,19 @@ export const WinnerModal: React.FC<Props> = ({
   onClose,
 }) => {
   const [showCards, setShowCards] = useState(false);
+  const count = winners.length;
 
   useEffect(() => {
     if (isOpen) {
+      // 弹窗在所有外部卡片动画完成后才显示（isOpen 才变为 true）
+      // 弹窗出现后，内部问号卡片应该很快开始翻转
+      // 使用短暂延迟（300ms）让弹窗先稳定显示，然后开始翻转动画
       const timer = setTimeout(() => setShowCards(true), 300);
       return () => clearTimeout(timer);
     } else {
       setShowCards(false);
     }
   }, [isOpen]);
-
-  const count = winners.length;
 
   // 智能计算卡片布局 - 基于视口和人数自动优化
   const getLayout = () => {

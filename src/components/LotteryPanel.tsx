@@ -233,8 +233,15 @@ export const LotteryPanel: React.FC<Props> = ({
           startScale = Math.max(0.3, Math.min(1.2, scaleFactor * scale));
         }
 
-        // 动画延迟基于揭示顺序（revealedIndex），而不是原始位置
-        const delay = revealedIndex * 150;
+        // 计算屏幕中央相对于目标位置的偏移量
+        // 卡片飞到屏幕中央展示时，需要知道从目标位置到中央的偏移
+        const centerOffsetX = winWidth / 2 - targetX;
+        const centerOffsetY = winHeight / 2 - targetY;
+
+        // 动画延迟：串行动画，每张卡片动画耗时 3.5 秒
+        // 前一张卡片完全飞到右边后，下一张卡片才开始动画
+        const ANIMATION_DURATION = 3500; // 3.5 秒
+        const delay = revealedIndex * ANIMATION_DURATION;
 
         return (
         <div
@@ -247,6 +254,8 @@ export const LotteryPanel: React.FC<Props> = ({
               "--start-offset-x": `${startOffsetX}px`,
               "--start-offset-y": `${startOffsetY}px`,
               "--start-scale": String(startScale),
+              "--center-offset-x": `${centerOffsetX}px`,
+              "--center-offset-y": `${centerOffsetY}px`,
               "animation-delay": `${delay}ms`,
             } as CSSProperties
           }
