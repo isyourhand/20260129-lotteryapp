@@ -5,7 +5,13 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import confetti from "canvas-confetti";
 import { parseExcel, exportToExcel } from "../services/xlsx";
 import { drawWinners, shuffle } from "../services/lottery";
-import { calculateDynamics } from "../services/physicsUtils";
+import {
+  calculateDynamics,
+  calculateRollingDuration,
+  calculateRevealDuration,
+  calculateDebugInfo,
+} from "../services/physicsUtils";
+import { TIMING } from "../config/physics";
 import { bgMusic } from "../services/backgroundMusic";
 import type { Participant, PrizePool, LotteryResult } from "../types";
 import { PRIZE_POOLS, STORAGE_KEY } from "../config/prizes";
@@ -172,7 +178,7 @@ export const useLotteryGame = () => {
         // 递归调用链本身已经累积了足够的等待时间，无需额外延迟
         timer.current = window.setTimeout(
           () => finalize(ws, pool, drawnItems),
-          0,
+          TIMING.REVEAL_BUFFER,
         );
         return;
       }
@@ -182,7 +188,9 @@ export const useLotteryGame = () => {
       );
       // 播放卡片亮起音效
       bgMusic.playCardReveal();
+      
       // 等待当前卡片完成整个动画流程后，再开始下一张
+      // 使用 CARD_INTERVAL 确保与 CSS 动画时间同步
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
         LOTTERY_FLOW.CARD_INTERVAL,
@@ -218,19 +226,26 @@ export const useLotteryGame = () => {
       specificPrize: shuffledItems[index] || selectedPool.name,
     }));
 
-    setFriction(calculateDynamics(drawn.length));
+    // 根据中奖人数动态计算参数
+    const winnerCount = drawn.length;
+    const rollingDuration = calculateRollingDuration(winnerCount);
+    const revealDuration = calculateRevealDuration(winnerCount);
+    
+    // 输出调试信息
+    console.log("[Lottery] 抽奖参数:", calculateDebugInfo(winnerCount));
+    
+    setFriction(calculateDynamics(winnerCount));
     setStatus("rolling");
-
-    // 音效已由背景音乐替代
 
     // 切换到抽奖音乐
     bgMusic.playRolling();
 
+    // 使用动态计算的滚动时间，人数越多滚动时间越长
     timer.current = window.setTimeout(() => {
       setWinners(drawn.map((w) => ({ ...w, revealing: 0 })));
       setStatus("revealing");
       reveal(drawn, 0, selectedPool, shuffledItems);
-    }, 4500);
+    }, rollingDuration);
   }, [status, selectedPool, drawCount, pool, reveal]);
 
   const reset = useCallback(() => {

@@ -9,11 +9,12 @@ import React, {
 import type { Participant, LotteryState } from "../types";
 import { useSpherePhysics } from "../hooks/useSpherePhysics";
 import { LOTTERY_FLOW } from "../config/animation";
+import { SPHERE } from "../config/physics";
 
 const CONSTANTS = {
-  SPHERE_MAX: 120,
+  SPHERE_MAX: SPHERE.MAX_CARDS,
   GRID: { W: 150, H: 80, COLS: 2 },
-  RADIUS: { BASE: 180, GROWTH: 15 },
+  RADIUS: { BASE: SPHERE.RADIUS_BASE, GROWTH: SPHERE.RADIUS_GROWTH },
 };
 
 interface Props {
@@ -255,7 +256,7 @@ export const LotteryPanel: React.FC<Props> = ({
           startOffsetY = screenY - targetY;
 
           // 根据球体的 z 轴深度计算缩放
-          const perspective = 1500;
+          const perspective = SPHERE.PERSPECTIVE;
           const scaleFactor = perspective / (perspective - spherePos.z);
           startScale = Math.max(0.3, Math.min(1.2, scaleFactor * scale));
         }

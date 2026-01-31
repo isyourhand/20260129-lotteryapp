@@ -1,13 +1,7 @@
 // src/hooks/useSpherePhysics.ts
 import { useEffect, useRef, type RefObject } from "react";
 import type { LotteryState } from "../types";
-
-// 物理配置
-const PHYSICS = {
-  IDLE_SPEED: 0.2, // 空闲时的慢速旋转
-  MAX_SPEED: 5, // 抽奖时的最高速度
-  ACCELERATION: 0.8, // 加速度
-};
+import { PHYSICS } from "../config/physics";
 
 export const useSpherePhysics = (
   containerRef: RefObject<HTMLDivElement | null>,
@@ -37,7 +31,9 @@ export const useSpherePhysics = (
           state.velocity = PHYSICS.IDLE_SPEED;
         }
       } else {
-        state.velocity = state.velocity * 0.9 + PHYSICS.IDLE_SPEED * 0.1;
+        // 空闲状态：使用配置的插值系数平滑回到 IDLE_SPEED
+        const lerp = PHYSICS.IDLE_LERP_FACTOR;
+        state.velocity = state.velocity * (1 - lerp) + PHYSICS.IDLE_SPEED * lerp;
       }
 
       state.angle = (state.angle + state.velocity) % 360;

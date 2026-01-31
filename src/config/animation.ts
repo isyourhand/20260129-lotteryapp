@@ -14,7 +14,7 @@
  */
 export const CARD_ANIMATION = {
   /** 第1阶段：飞到屏幕中央的时间（毫秒） */
-  FLY_TO_CENTER: 500,
+  FLY_TO_CENTER: 200,
 
   /** 第2阶段：在屏幕中央展示的时间（毫秒） */
   SHOW_IN_CENTER: 1000,
