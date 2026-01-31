@@ -158,13 +158,23 @@ export const LotteryPanel: React.FC<Props> = ({
   };
 
   const winnerCards = useMemo(() => {
-    // 基于总中奖人数计算固定布局，而不是仅基于已揭示的人数
-    // 这样在抽奖过程中布局保持稳定，已有卡片不会跳动
+    // 基于总中奖人数计算固定布局，左右两侧分别排列
     const totalWinners = currentWinners.length;
     if (!totalWinners) return null;
 
-    // 右侧网格布局参数
-    const marginRight = 30; // 右侧边距（像素）
+    // 将中奖者分成两组：偶数索引在右侧，奇数索引在左侧
+    const rightSideIndices: number[] = [];
+    const leftSideIndices: number[] = [];
+    for (let i = 0; i < totalWinners; i++) {
+      if (i % 2 === 0) {
+        rightSideIndices.push(i);
+      } else {
+        leftSideIndices.push(i);
+      }
+    }
+
+    // 网格布局参数
+    const marginSide = 30; // 左右边距（像素）
     const gap = 12;
     const cardWidth = winWidth < 1400 ? 100 : 110; // 单列卡片宽度
     const rowHeight = 92;
@@ -173,38 +183,55 @@ export const LotteryPanel: React.FC<Props> = ({
     const availableHeight = winHeight - topMargin - bottomMargin;
     const maxRows = Math.max(1, Math.floor(availableHeight / rowHeight));
 
-    // 根据【总】中奖者数量计算列数，确保最终布局不超出屏幕
-    const minCols = 2; // 最少2列
-    const requiredCols = Math.ceil(totalWinners / maxRows);
-    const cols = Math.max(minCols, requiredCols);
+    // 计算每侧需要的列数
+    const calculateSideLayout = (count: number) => {
+      const minCols = 1;
+      const requiredCols = Math.ceil(count / maxRows);
+      const cols = Math.max(minCols, requiredCols);
+      const rows = Math.ceil(count / cols);
+      return { cols, rows };
+    };
 
-    // 计算网格总宽度
-    const gridWidth = cols * cardWidth + (cols - 1) * gap;
+    const rightLayout = calculateSideLayout(rightSideIndices.length);
+    const leftLayout = calculateSideLayout(leftSideIndices.length);
 
-    // 关键：最右侧卡片的中心位置 = 屏幕宽 - 右边距 - 卡片半宽
-    const rightmostCardCenter = winWidth - marginRight - cardWidth / 2;
+    // 垂直居中计算
+    const getFirstRowY = (rows: number) => {
+      const totalGridHeight = rows * rowHeight;
+      return (winHeight - totalGridHeight) / 2 + rowHeight / 2;
+    };
 
-    // 垂直居中计算（基于总行数）
-    const totalRows = Math.ceil(totalWinners / cols);
-    const totalGridHeight = totalRows * rowHeight;
-    const firstRowY = (winHeight - totalGridHeight) / 2 + rowHeight / 2;
+    const rightFirstRowY = getFirstRowY(rightLayout.rows);
+    const leftFirstRowY = getFirstRowY(leftLayout.rows);
 
-    // 预计算所有中奖者的固定位置（按 originalIndex 排序）
+    // 预计算所有中奖者的固定位置
     const positionMap = new Map<number, { x: number; y: number }>();
-    for (let i = 0; i < totalWinners; i++) {
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      // 从右向左排列：第0列在最右边
+
+    // 右侧：从右向左排列
+    const rightmostCardCenter = winWidth - marginSide - cardWidth / 2;
+    rightSideIndices.forEach((originalIndex, i) => {
+      const col = i % rightLayout.cols;
+      const row = Math.floor(i / rightLayout.cols);
       const x = rightmostCardCenter - col * (cardWidth + gap);
-      const y = firstRowY + row * rowHeight;
-      positionMap.set(i, { x, y });
-    }
+      const y = rightFirstRowY + row * rowHeight;
+      positionMap.set(originalIndex, { x, y });
+    });
+
+    // 左侧：从左向右排列
+    const leftmostCardCenter = marginSide + cardWidth / 2;
+    leftSideIndices.forEach((originalIndex, i) => {
+      const col = i % leftLayout.cols;
+      const row = Math.floor(i / leftLayout.cols);
+      const x = leftmostCardCenter + col * (cardWidth + gap);
+      const y = leftFirstRowY + row * rowHeight;
+      positionMap.set(originalIndex, { x, y });
+    });
 
     // 只渲染已揭示的中奖者，但使用预计算的固定位置
     return currentWinners
       .map((winner, originalIndex) => ({ winner, originalIndex }))
       .filter(({ winner }) => winner.revealing === 1)
-      .map(({ winner, originalIndex }, revealedIndex) => {
+      .map(({ winner, originalIndex }) => {
         const pos = positionMap.get(originalIndex)!;
         const { x: targetX, y: targetY } = pos;
 
@@ -220,7 +247,6 @@ export const LotteryPanel: React.FC<Props> = ({
           const spherePos = getCardSpherePosition(sphereIndex);
 
           // 计算球体卡片在屏幕上的位置（相对于屏幕中心的偏移）
-          // 加上当前缩放的影响
           const screenX = winWidth / 2 + spherePos.x * scale;
           const screenY = winHeight / 2 + spherePos.y * scale;
 
@@ -235,40 +261,36 @@ export const LotteryPanel: React.FC<Props> = ({
         }
 
         // 计算屏幕中央相对于目标位置的偏移量
-        // 卡片飞到屏幕中央展示时，需要知道从目标位置到中央的偏移
         const centerOffsetX = winWidth / 2 - targetX;
         const centerOffsetY = winHeight / 2 - targetY;
 
-        // 动画延迟：卡片亮起后立即开始飞（delay=0）
-        // 因为卡片是在 revealing=1 时才动态创建的，JS已经控制了创建时机
-        // 如果设置 delay > 0，会导致卡片到位后额外等待
         const delay = 0;
 
         return (
-        <div
-          key={winner.id}
-          className={`winner-card-static ${isFirstPrize ? "first-prize" : ""}`}
-          style={
-            {
-              "--target-x": `${targetX}px`,
-              "--target-y": `${targetY}px`,
-              "--start-offset-x": `${startOffsetX}px`,
-              "--start-offset-y": `${startOffsetY}px`,
-              "--start-scale": String(startScale),
-              "--center-offset-x": `${centerOffsetX}px`,
-              "--center-offset-y": `${centerOffsetY}px`,
-              "animation-delay": `${delay}ms`,
-            } as CSSProperties
-          }
-        >
-          <span className="card-name">{winner.name}</span>
-          <div className="card-dept">{winner.department}</div>
-          {winner.specificPrize && (
-            <div className="card-prize-detail">{winner.specificPrize}</div>
-          )}
-        </div>
-      );
-    });
+          <div
+            key={winner.id}
+            className={`winner-card-static ${isFirstPrize ? "first-prize" : ""}`}
+            style={
+              {
+                "--target-x": `${targetX}px`,
+                "--target-y": `${targetY}px`,
+                "--start-offset-x": `${startOffsetX}px`,
+                "--start-offset-y": `${startOffsetY}px`,
+                "--start-scale": String(startScale),
+                "--center-offset-x": `${centerOffsetX}px`,
+                "--center-offset-y": `${centerOffsetY}px`,
+                "animation-delay": `${delay}ms`,
+              } as CSSProperties
+            }
+          >
+            <span className="card-name">{winner.name}</span>
+            <div className="card-dept">{winner.department}</div>
+            {winner.specificPrize && (
+              <div className="card-prize-detail">{winner.specificPrize}</div>
+            )}
+          </div>
+        );
+      });
   }, [currentWinners, pool, sphereParams, displayCount, isFirstPrize, scale, winWidth, winHeight]);
 
   return (

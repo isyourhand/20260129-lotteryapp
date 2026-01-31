@@ -4,7 +4,7 @@
 // 音频文件路径
 const IDLE_MUSIC_PATH = "/music/1.mp3"; // 背景音乐 - 未抽奖时播放
 const ROLLING_MUSIC_PATH = "/music/6.mp3"; // 抽奖音乐 - 抽奖时播放
-const CARD_REVEAL_PATH = "/music/3.mp3"; // 卡片亮起音效
+const CARD_REVEAL_PATH = ""; // 卡片亮起音效
 // const WIN_MODAL_PATH = "/music/5.wav"; // 中奖弹窗音效
 
 type MusicMode = "idle" | "rolling";

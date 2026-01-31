@@ -1,6 +1,7 @@
 // src/components/WinnerModal.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CARD_ANIMATION, LOTTERY_FLOW } from "../config/animation";
+import { bgMusic } from "../services/backgroundMusic";
 import type { Participant } from "../types";
 
 interface Props {
@@ -20,9 +21,13 @@ export const WinnerModal: React.FC<Props> = ({
 }) => {
   const [showCards, setShowCards] = useState(false);
   const count = winners.length;
+  const flippedCountRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
+      // 播放中奖弹窗音效 (4.wav)
+      bgMusic.playWinModal();
+
       // 弹窗在所有外部卡片动画完成后才显示（isOpen 才变为 true）
       // 弹窗出现后，内部问号卡片应该很快开始翻转
       // 使用 LOTTERY_FLOW.FLIP_DELAY 让弹窗先稳定显示，然后开始翻转动画
@@ -33,8 +38,17 @@ export const WinnerModal: React.FC<Props> = ({
       return () => clearTimeout(timer);
     } else {
       setShowCards(false);
+      flippedCountRef.current = 0;
     }
   }, [isOpen]);
+
+  // 卡片翻转处理（音效已移除）
+  const handleFlip = (index: number) => {
+    // 只在卡片真正开始翻转时计数
+    if (showCards && index >= flippedCountRef.current) {
+      flippedCountRef.current = index + 1;
+    }
+  };
 
   // 智能计算卡片布局 - 基于视口和人数自动优化
   const getLayout = () => {
@@ -73,9 +87,9 @@ export const WinnerModal: React.FC<Props> = ({
 
     // 限制卡片最大最小尺寸
     const maxWidth = 200;
-    const minWidth = 120;
+    const minWidth = 130;
     const maxHeight = 150;
-    const minHeight = 80;
+    const minHeight = 95;
 
     cardWidth = Math.max(minWidth, Math.min(maxWidth, cardWidth));
     cardHeight = Math.max(minHeight, Math.min(maxHeight, cardHeight));
@@ -96,7 +110,10 @@ export const WinnerModal: React.FC<Props> = ({
     // 弹窗尺寸 - 根据实际卡片布局计算，确保最小宽度能容纳标题
     const calculatedWidth = cols * (cardWidth + gap) + 80;
     const minWidthForTitle = 420; // 确保标题能完整显示的最小宽度
-    const modalWidth = Math.min(viewportWidth, Math.max(calculatedWidth, minWidthForTitle));
+    const modalWidth = Math.min(
+      viewportWidth,
+      Math.max(calculatedWidth, minWidthForTitle),
+    );
     const modalHeight = Math.min(
       viewportHeight,
       rows * (cardHeight + gap) + 180,
@@ -145,6 +162,7 @@ export const WinnerModal: React.FC<Props> = ({
                 width: `${layout.cardWidth}px`,
                 height: `${layout.cardHeight}px`,
               }}
+              onTransitionEnd={() => handleFlip(index)}
             >
               <div className="winner-flip-card-inner">
                 {/* 卡片正面 - 问号 */}
@@ -172,7 +190,7 @@ export const WinnerModal: React.FC<Props> = ({
                     className="winner-dept"
                     style={{
                       fontSize: `${Math.max(0.8, layout.fontSize * 0.55)}rem`,
-                      marginTop: "6px",
+                      marginTop: "1px",
                     }}
                   >
                     {winner.department}

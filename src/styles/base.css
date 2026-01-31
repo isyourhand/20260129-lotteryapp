@@ -49,9 +49,9 @@ body {
     radial-gradient(white, rgba(255, 255, 255, 0.15) 1px, transparent 2px),
     radial-gradient(white, rgba(255, 255, 255, 0.1) 2px, transparent 3px);
   background-size:
-    550px 550px,
     350px 350px,
-    250px 250px;
+    220px 220px,
+    150px 150px;
   background-position:
     0 0,
     40px 60px,
@@ -64,8 +64,12 @@ body {
    3. 通用动画 (Animations)
    ========================================= */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -80,8 +84,15 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 @keyframes winnerPulse {
@@ -96,3 +107,124 @@ body {
       inset 0 0 30px rgba(255, 215, 0, 0.6);
   }
 }
+
+/* =========================================
+   4. 彩带飘落特效 (Falling Ribbons)
+   ========================================= */
+
+/* 彩带容器 */
+.ribbon-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* 彩带基础样式 */
+.ribbon {
+  position: absolute;
+  width: 8px;
+  height: 24px;
+  border-radius: 2px;
+  opacity: 0.8;
+  top: -30px;
+  animation: ribbonFall linear infinite;
+}
+
+/* 彩带颜色变体 */
+.ribbon--gold {
+  background: linear-gradient(180deg, #ffd700, #ffaa00);
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+}
+
+.ribbon--red {
+  background: linear-gradient(180deg, #ff6b6b, #ee5a5a);
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.6);
+}
+
+.ribbon--blue {
+  background: linear-gradient(180deg, #4ecdc4, #44a08d);
+  box-shadow: 0 0 6px rgba(78, 205, 196, 0.6);
+}
+
+.ribbon--purple {
+  background: linear-gradient(180deg, #a55eea, #8854d0);
+  box-shadow: 0 0 6px rgba(165, 94, 234, 0.6);
+}
+
+.ribbon--pink {
+  background: linear-gradient(180deg, #ff9ff3, #f368e0);
+  box-shadow: 0 0 6px rgba(255, 159, 243, 0.6);
+}
+
+.ribbon--green {
+  background: linear-gradient(180deg, #26de81, #20bf6b);
+  box-shadow: 0 0 6px rgba(38, 222, 129, 0.6);
+}
+
+/* 彩带飘落动画 */
+@keyframes ribbonFall {
+  0% {
+    transform: translateY(0) rotate(0deg) rotateX(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg) rotateX(360deg);
+    opacity: 0;
+  }
+}
+
+/* 彩带摇摆动画 */
+@keyframes ribbonSway {
+  0%, 100% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: 20px;
+  }
+  75% {
+    margin-left: -20px;
+  }
+}
+
+/* 彩带动画参数 - 位置和延迟 */
+.ribbon:nth-child(1) { left: 5%; animation-duration: 8s; animation-delay: 0s; }
+.ribbon:nth-child(2) { left: 10%; animation-duration: 10s; animation-delay: 1s; }
+.ribbon:nth-child(3) { left: 15%; animation-duration: 9s; animation-delay: 2s; }
+.ribbon:nth-child(4) { left: 20%; animation-duration: 11s; animation-delay: 0.5s; }
+.ribbon:nth-child(5) { left: 25%; animation-duration: 8.5s; animation-delay: 3s; }
+.ribbon:nth-child(6) { left: 30%; animation-duration: 12s; animation-delay: 1.5s; }
+.ribbon:nth-child(7) { left: 35%; animation-duration: 9.5s; animation-delay: 4s; }
+.ribbon:nth-child(8) { left: 40%; animation-duration: 10.5s; animation-delay: 2.5s; }
+.ribbon:nth-child(9) { left: 45%; animation-duration: 8s; animation-delay: 5s; }
+.ribbon:nth-child(10) { left: 50%; animation-duration: 11s; animation-delay: 0s; }
+.ribbon:nth-child(11) { left: 55%; animation-duration: 9s; animation-delay: 3.5s; }
+.ribbon:nth-child(12) { left: 60%; animation-duration: 10s; animation-delay: 1s; }
+.ribbon:nth-child(13) { left: 65%; animation-duration: 12s; animation-delay: 4.5s; }
+.ribbon:nth-child(14) { left: 70%; animation-duration: 8.5s; animation-delay: 2s; }
+.ribbon:nth-child(15) { left: 75%; animation-duration: 11s; animation-delay: 5.5s; }
+.ribbon:nth-child(16) { left: 80%; animation-duration: 9.5s; animation-delay: 0.5s; }
+.ribbon:nth-child(17) { left: 85%; animation-duration: 10s; animation-delay: 3s; }
+.ribbon:nth-child(18) { left: 90%; animation-duration: 8s; animation-delay: 1.5s; }
+.ribbon:nth-child(19) { left: 95%; animation-duration: 12s; animation-delay: 4s; }
+.ribbon:nth-child(20) { left: 3%; animation-duration: 10.5s; animation-delay: 2.5s; }
+.ribbon:nth-child(21) { left: 8%; animation-duration: 9s; animation-delay: 6s; }
+.ribbon:nth-child(22) { left: 13%; animation-duration: 11s; animation-delay: 3.5s; }
+.ribbon:nth-child(23) { left: 18%; animation-duration: 8.5s; animation-delay: 0s; }
+.ribbon:nth-child(24) { left: 23%; animation-duration: 10s; animation-delay: 4.5s; }
+.ribbon:nth-child(25) { left: 28%; animation-duration: 12s; animation-delay: 1.5s; }
+.ribbon:nth-child(26) { left: 33%; animation-duration: 9s; animation-delay: 5s; }
+.ribbon:nth-child(27) { left: 38%; animation-duration: 11s; animation-delay: 2.5s; }
+.ribbon:nth-child(28) { left: 43%; animation-duration: 8s; animation-delay: 0.5s; }
+.ribbon:nth-child(29) { left: 48%; animation-duration: 10.5s; animation-delay: 4s; }
+.ribbon:nth-child(30) { left: 53%; animation-duration: 9.5s; animation-delay: 1s; }

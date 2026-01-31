@@ -6,6 +6,7 @@ import confetti from "canvas-confetti";
 import { parseExcel, exportToExcel } from "../services/xlsx";
 import { drawWinners, shuffle } from "../services/lottery";
 import { calculateDynamics } from "../services/physicsUtils";
+import { bgMusic } from "../services/backgroundMusic";
 import type { Participant, PrizePool, LotteryResult } from "../types";
 import { PRIZE_POOLS, STORAGE_KEY } from "../config/prizes";
 import { CARD_ANIMATION, LOTTERY_FLOW } from "../config/animation";
@@ -64,9 +65,14 @@ export const useLotteryGame = () => {
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      setPool(await parseExcel(file));
+      const participants = await parseExcel(file);
+      setPool(participants);
+      // 上传成功后开始播放背景音乐
+      if (participants.length > 0) {
+        bgMusic.playIdle();
+      }
     },
-    []
+    [],
   );
 
   // 彩纸动画触发函数
@@ -111,7 +117,7 @@ export const useLotteryGame = () => {
         setDrawCount(1);
       }
     },
-    [prizePools]
+    [prizePools],
   );
 
   // 设置抽取数量
@@ -127,8 +133,8 @@ export const useLotteryGame = () => {
       // 更新奖池状态
       setPrizePools((prev) =>
         prev.map((p) =>
-          p.id === pool.id ? { ...p, drawnCount: p.drawnCount + ws.length } : p
-        )
+          p.id === pool.id ? { ...p, drawnCount: p.drawnCount + ws.length } : p,
+        ),
       );
 
       // 添加到历史记录
@@ -147,9 +153,16 @@ export const useLotteryGame = () => {
       });
       setStatus("idle");
       setSelectedPool(null);
+
+      // 播放中奖弹窗音效
+      bgMusic.playWinModal();
+
+      // 抽奖结束，切换回背景音乐
+      bgMusic.playIdle();
+
       triggerConfetti();
     },
-    [triggerConfetti]
+    [triggerConfetti],
   );
 
   const reveal = useCallback(
@@ -159,21 +172,23 @@ export const useLotteryGame = () => {
         // 递归调用链本身已经累积了足够的等待时间，无需额外延迟
         timer.current = window.setTimeout(
           () => finalize(ws, pool, drawnItems),
-          0
+          0,
         );
         return;
       }
       // 点亮当前卡片（触发 CSS 飞行动画）
       setWinners((prev) =>
-        prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w))
+        prev.map((w, i) => (i === idx ? { ...w, revealing: 1 } : w)),
       );
+      // 播放卡片亮起音效
+      bgMusic.playCardReveal();
       // 等待当前卡片完成整个动画流程后，再开始下一张
       timer.current = window.setTimeout(
         () => reveal(ws, idx + 1, pool, drawnItems),
-        LOTTERY_FLOW.CARD_INTERVAL
+        LOTTERY_FLOW.CARD_INTERVAL,
       );
     },
-    [finalize]
+    [finalize],
   );
 
   const start = useCallback(() => {
@@ -186,7 +201,7 @@ export const useLotteryGame = () => {
     const actualDrawCount = Math.min(
       drawCount,
       remainingItems.length,
-      pool.length
+      pool.length,
     );
 
     if (actualDrawCount <= 0) {
@@ -206,16 +221,23 @@ export const useLotteryGame = () => {
     setFriction(calculateDynamics(drawn.length));
     setStatus("rolling");
 
+    // 音效已由背景音乐替代
+
+    // 切换到抽奖音乐
+    bgMusic.playRolling();
+
     timer.current = window.setTimeout(() => {
       setWinners(drawn.map((w) => ({ ...w, revealing: 0 })));
       setStatus("revealing");
       reveal(drawn, 0, selectedPool, shuffledItems);
-    }, 2500);
+    }, 4500);
   }, [status, selectedPool, drawCount, pool, reveal]);
 
   const reset = useCallback(() => {
     setResult(null);
     setWinners([]);
+    // 关闭弹窗后恢复背景音乐
+    bgMusic.playIdle();
   }, []);
 
   // 获取指定奖池的历史记录
@@ -223,18 +245,21 @@ export const useLotteryGame = () => {
     (poolId: string) => {
       return history.filter((h) => h.poolId === poolId);
     },
-    [history]
+    [history],
   );
 
   const downloadResults = useCallback(() => {
     // 按奖池分组导出
-    const grouped = history.reduce((acc, record) => {
-      if (!acc[record.poolName]) {
-        acc[record.poolName] = [];
-      }
-      acc[record.poolName].push(...record.winners);
-      return acc;
-    }, {} as Record<string, Participant[]>);
+    const grouped = history.reduce(
+      (acc, record) => {
+        if (!acc[record.poolName]) {
+          acc[record.poolName] = [];
+        }
+        acc[record.poolName].push(...record.winners);
+        return acc;
+      },
+      {} as Record<string, Participant[]>,
+    );
 
     exportToExcel(grouped);
   }, [history]);
@@ -243,6 +268,8 @@ export const useLotteryGame = () => {
     if (
       window.confirm("确定要清空所有抽奖记录并重新开始吗？此操作不可恢复！")
     ) {
+      // 停止音乐
+      bgMusic.stop();
       setHistory([]);
       setPool([]);
       setPrizePools(PRIZE_POOLS);
@@ -257,7 +284,7 @@ export const useLotteryGame = () => {
     ? Math.min(
         selectedPool.items.length - selectedPool.drawnCount,
         pool.length,
-        50
+        50,
       )
     : 0;
 

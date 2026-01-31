@@ -83,14 +83,14 @@ export const PRIZE_POOLS: PrizePool[] = [
   },
   {
     id: "blindbox",
-    name: "盲盒",
+    name: "年会奖品",
     items: shuffle([...BLIND_BOX_ITEMS]),
     drawnCount: 0,
   },
   {
     id: "lucky",
     name: "幸运礼",
-    items: generateItems(["刮刮乐&彩票（幸运奖）", 2]),
+    items: generateItems(["刮刮乐&彩票", 2]),
     drawnCount: 0,
   },
 ];

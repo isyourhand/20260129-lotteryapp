@@ -287,3 +287,31 @@
   color: rgba(255, 107, 107, 0.3);
   cursor: not-allowed;
 }
+
+/* 静音按钮 */
+.btn-mute {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(100, 200, 255, 0.5);
+  background: transparent;
+  color: #64c8ff;
+  margin-top: 4px;
+}
+
+.btn-mute:hover {
+  background: rgba(100, 200, 255, 0.1);
+}
+
+.btn-mute.muted {
+  border-color: rgba(150, 150, 150, 0.5);
+  color: #969696;
+}
+
+.btn-mute.muted:hover {
+  background: rgba(150, 150, 150, 0.1);
+}
